@@ -10,7 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" async></script>
 </head>
 
 <body>
@@ -54,16 +53,6 @@
         </button>
       </div>
       <ul class="playlist-list" id="playlist-list"></ul>
-    </div>
-
-    <div class="sidebar-upload">
-      <button class="btn-upload-song" id="btn-upload-cloudinary">
-        <svg viewBox="0 0 24 24">
-          <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
-        </svg>
-        Upload Song
-      </button>
-      <p class="upload-hint">Upload MP3 to Cloudinary,<br>then add URL to songs.json</p>
     </div>
 
     <button class="sidebar-close" id="sidebar-close">
@@ -285,25 +274,6 @@
       <ul class="modal-playlist-list" id="modal-playlist-list"></ul>
       <div class="modal-actions">
         <button class="btn-secondary" data-modal="modal-add-to-playlist">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Upload Result Modal: shows the JSON snippet to copy into songs.json -->
-    <div class="modal" id="modal-upload-result">
-      <div class="modal-header">
-        <h2>✅ Upload Complete!</h2>
-        <button class="btn-icon modal-close" data-modal="modal-upload-result">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-          </svg>
-        </button>
-      </div>
-      <p class="modal-hint">Copy this line and paste it into your <strong>songs.json</strong> on GitHub:</p>
-      <textarea class="modal-input mono" id="upload-result-json" rows="4" readonly></textarea>
-      <div class="modal-actions">
-        <button class="btn-primary" id="btn-copy-json">📋 Copy JSON</button>
-        <button class="btn-secondary" data-modal="modal-upload-result">Close</button>
       </div>
     </div>
 
