@@ -11,44 +11,36 @@
 }
 
 :root {
-  /* Backgrounds */
   --bg-base: #06060f;
   --bg-surface: #0c0c1e;
   --bg-elevated: #13132a;
   --bg-hover: #1a1a38;
   --bg-active: #202045;
 
-  /* Neon Colors */
   --neon-pink: #ff2d78;
   --neon-purple: #c44dff;
   --neon-cyan: #00e5ff;
   --neon-orange: #ff7043;
   --neon-green: #00e676;
 
-  /* Main accent */
   --accent: #ff2d78;
   --accent-glow: rgba(255, 45, 120, 0.35);
   --accent-dim: rgba(255, 45, 120, 0.12);
 
-  /* Gradients */
   --grad-main: linear-gradient(135deg, #ff2d78 0%, #c44dff 50%, #00e5ff 100%);
   --grad-hot: linear-gradient(135deg, #ff7043, #ff2d78);
   --grad-cool: linear-gradient(135deg, #c44dff, #00e5ff);
 
-  /* Text */
   --text-1: #ffffff;
   --text-2: #9999bb;
   --text-3: #555577;
 
-  /* Borders */
   --border: rgba(255, 255, 255, 0.08);
   --border-glow: rgba(255, 45, 120, 0.3);
 
-  /* Layout */
   --sidebar-w: 255px;
   --player-h: 100px;
 
-  /* Fonts — these are on Google Fonts! */
   --font-head: 'Righteous', cursive;
   --font-body: 'Nunito', sans-serif;
 }
@@ -237,6 +229,7 @@ body {
   background: linear-gradient(to bottom, rgba(6, 6, 15, 0.97) 0%, transparent 100%);
   flex-shrink: 0;
   z-index: 10;
+  position: relative;
 }
 
 .mobile-menu-btn {
@@ -310,6 +303,125 @@ body {
 
 .search-clear.visible {
   display: flex;
+}
+
+/* ===========================
+   SEARCH HISTORY
+   =========================== */
+#search-history {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glow);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 45, 120, 0.08);
+  z-index: 200;
+  overflow: hidden;
+  animation: fadeUp 0.18s ease;
+}
+
+#search-history.visible {
+  display: block;
+}
+
+.sh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 8px;
+  color: var(--text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+.sh-clear-all {
+  background: none;
+  border: none;
+  color: var(--neon-pink);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: opacity 0.15s;
+}
+
+.sh-clear-all:hover {
+  opacity: 0.7;
+}
+
+.sh-list {
+  list-style: none;
+  padding: 6px 8px;
+}
+
+.sh-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.sh-item:hover {
+  background: var(--bg-hover);
+}
+
+.sh-query {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 9px 8px;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.sh-query:hover {
+  color: var(--text-1);
+}
+
+.sh-query svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--text-3);
+  flex-shrink: 0;
+}
+
+.sh-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--text-3);
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sh-remove:hover {
+  color: var(--neon-pink);
+  background: var(--accent-dim);
+}
+
+.sh-remove svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
 }
 
 /* ===========================
@@ -648,7 +760,7 @@ body {
 }
 
 /* ===========================
-   PLAYER BAR  ← BIG & BOLD
+   PLAYER BAR
    =========================== */
 .player-bar {
   grid-area: player;
@@ -663,7 +775,6 @@ body {
   position: relative;
 }
 
-/* Rainbow top line */
 .player-bar::before {
   content: '';
   position: absolute;
@@ -709,7 +820,7 @@ body {
 }
 
 @keyframes artSpin {
-  from {
+  0% {
     border-color: var(--neon-pink);
     box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.2), 0 0 24px rgba(255, 45, 120, 0.3);
   }
@@ -751,6 +862,22 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 3px;
+}
+
+/* ── SONG POSITION BADGE ── */
+#player-position {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 2px 10px;
+  margin-top: 5px;
+  width: fit-content;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
 }
 
 .player-heart {
@@ -809,7 +936,6 @@ body {
   color: var(--neon-pink);
 }
 
-/* ★ BIG PLAY BUTTON ★ */
 .play-btn {
   width: 58px !important;
   height: 58px !important;
@@ -832,7 +958,7 @@ body {
   height: 26px !important;
 }
 
-/* Progress bar */
+/* Progress */
 .progress-row {
   display: flex;
   align-items: center;
@@ -1212,6 +1338,10 @@ body {
 
   .playlist-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  #player-position {
+    display: none !important;
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * WAVVVE — Music Player
- * Modular JS: State, AudioEngine, UI, Search, Playlists, Events
+ * Features: Song Position, True Shuffle, Search History
  */
 
 'use strict';
@@ -20,11 +20,13 @@ const State = (() => {
   let _isMuted = false;
   let _playlists = JSON.parse(localStorage.getItem('wavvve_playlists') || '[]');
   let _likedSongs = new Set(JSON.parse(localStorage.getItem('wavvve_liked') || '[]'));
+  let _searchHistory = JSON.parse(localStorage.getItem('wavvve_search_history') || '[]');
   let _activeView = 'home';
   let _openPlaylistId = null;
 
   const savePlaylists = () => localStorage.setItem('wavvve_playlists', JSON.stringify(_playlists));
   const saveLiked = () => localStorage.setItem('wavvve_liked', JSON.stringify([..._likedSongs]));
+  const saveHistory = () => localStorage.setItem('wavvve_search_history', JSON.stringify(_searchHistory));
 
   return {
     get songs() { return _songs; },
@@ -38,6 +40,7 @@ const State = (() => {
     get isMuted() { return _isMuted; },
     get playlists() { return _playlists; },
     get likedSongs() { return _likedSongs; },
+    get searchHistory() { return _searchHistory; },
     get activeView() { return _activeView; },
     get openPlaylistId() { return _openPlaylistId; },
 
@@ -50,6 +53,7 @@ const State = (() => {
     setActiveView(v) { _activeView = v; },
     setOpenPlaylist(id) { _openPlaylistId = id; },
 
+    // ── TRUE SHUFFLE: Fisher-Yates, never repeats until all played ──
     buildQueue(songIdx) {
       if (_isShuffle) {
         const indices = _songs.map((_, i) => i).filter(i => i !== songIdx);
@@ -76,10 +80,38 @@ const State = (() => {
       return _currentIdx >= 0 ? _songs[_currentIdx] : null;
     },
 
+    // Position in queue (1-based)
+    queuePosition() {
+      return _queueIdx + 1;
+    },
+
     toggleLike(idx) {
       if (_likedSongs.has(idx)) _likedSongs.delete(idx);
       else _likedSongs.add(idx);
       saveLiked();
+    },
+
+    // ── SEARCH HISTORY ──
+    addSearchHistory(query) {
+      query = query.trim();
+      if (!query) return;
+      // Remove duplicate
+      _searchHistory = _searchHistory.filter(h => h.toLowerCase() !== query.toLowerCase());
+      // Add to front
+      _searchHistory.unshift(query);
+      // Keep only last 10
+      if (_searchHistory.length > 10) _searchHistory = _searchHistory.slice(0, 10);
+      saveHistory();
+    },
+
+    removeSearchHistory(query) {
+      _searchHistory = _searchHistory.filter(h => h !== query);
+      saveHistory();
+    },
+
+    clearSearchHistory() {
+      _searchHistory = [];
+      saveHistory();
     },
 
     createPlaylist(name) {
@@ -153,7 +185,9 @@ const UI = (() => {
     newPlaylistBtn: $('#new-playlist-btn'),
     searchInput: $('#search-input'),
     searchClear: $('#search-clear'),
+    searchHistory: $('#search-history'),
     greetingTime: $('#greeting-time'),
+    songCountLabel: $('#song-count-label'),
     views: $$('.view'),
     songListHome: $('#song-list-home'),
     songListLib: $('#song-list-library'),
@@ -169,6 +203,7 @@ const UI = (() => {
     playerArtist: $('#player-artist'),
     playerArt: $('#player-art'),
     playerHeart: $('#player-heart'),
+    playerPosition: $('#player-position'),
     btnPlay: $('#btn-play'),
     btnPrev: $('#btn-prev'),
     btnNext: $('#btn-next'),
@@ -211,10 +246,8 @@ const UI = (() => {
 
   function escHtml(str) {
     return String(str ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function createSongItem(song, songIdx, displayNum) {
@@ -261,15 +294,13 @@ const UI = (() => {
   function highlightPlaying(ulEl) {
     const playing = State.currentIdx;
     ulEl.querySelectorAll('.song-item').forEach(li => {
-      const idx = parseInt(li.dataset.idx, 10);
-      li.classList.toggle('playing', idx === playing);
+      li.classList.toggle('playing', parseInt(li.dataset.idx, 10) === playing);
     });
   }
 
   function highlightAllLists() {
-    [el.songListHome, el.songListLib, el.songListSearch, el.songListPlaylist].forEach(ul => {
-      highlightPlaying(ul);
-    });
+    [el.songListHome, el.songListLib, el.songListSearch, el.songListPlaylist]
+      .forEach(ul => highlightPlaying(ul));
   }
 
   function updatePlayButton(playing) {
@@ -299,6 +330,74 @@ const UI = (() => {
     el.playerArtist.textContent = song.artist || '—';
     el.playerArt.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
     el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
+    // ── UPDATE SONG POSITION ──
+    updatePosition();
+  }
+
+  // ── SONG POSITION: "Playing 45 of 300" ──
+  function updatePosition() {
+    if (!el.playerPosition) return;
+    const pos = State.queuePosition();
+    const total = State.songs.length;
+    if (State.currentIdx >= 0 && total > 0) {
+      el.playerPosition.textContent = `${State.isShuffle ? '🔀 ' : ''}${pos} / ${total}`;
+      el.playerPosition.style.display = 'block';
+    } else {
+      el.playerPosition.style.display = 'none';
+    }
+  }
+
+  // ── SEARCH HISTORY UI ──
+  function renderSearchHistory() {
+    if (!el.searchHistory) return;
+    const history = State.searchHistory;
+    if (!history.length) {
+      el.searchHistory.innerHTML = '';
+      el.searchHistory.classList.remove('visible');
+      return;
+    }
+    el.searchHistory.innerHTML = `
+      <div class="sh-header">
+        <span>Recent Searches</span>
+        <button class="sh-clear-all" id="sh-clear-all">Clear all</button>
+      </div>
+      <ul class="sh-list">
+        ${history.map(q => `
+          <li class="sh-item">
+            <button class="sh-query" data-query="${escHtml(q)}">
+              <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+              ${escHtml(q)}
+            </button>
+            <button class="sh-remove" data-query="${escHtml(q)}" title="Remove">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </li>`).join('')}
+      </ul>`;
+    el.searchHistory.classList.add('visible');
+
+    // Clear all button
+    document.getElementById('sh-clear-all')?.addEventListener('click', () => {
+      State.clearSearchHistory();
+      renderSearchHistory();
+    });
+
+    // Click on history item
+    el.searchHistory.querySelectorAll('.sh-query').forEach(btn => {
+      btn.addEventListener('click', () => {
+        el.searchInput.value = btn.dataset.query;
+        Search.run(btn.dataset.query);
+        el.searchHistory.classList.remove('visible');
+      });
+    });
+
+    // Remove single item
+    el.searchHistory.querySelectorAll('.sh-remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        State.removeSearchHistory(btn.dataset.query);
+        renderSearchHistory();
+      });
+    });
   }
 
   function showView(viewId) {
@@ -386,9 +485,10 @@ const UI = (() => {
   }
 
   return {
-    el, fmtTime, greeting,
+    el, fmtTime, greeting, escHtml,
     renderSongList, highlightPlaying, highlightAllLists,
-    updatePlayButton, updateProgress, updateVolume, updatePlayerMeta,
+    updatePlayButton, updateProgress, updateVolume, updatePlayerMeta, updatePosition,
+    renderSearchHistory,
     showView,
     renderSidebarPlaylists, renderPlaylistGrid,
     openPlaylistDetail, closePlaylistDetail,
@@ -433,10 +533,7 @@ const Player = (() => {
   }
 
   function playPrev() {
-    if (AudioEngine.currentTime > 3) {
-      AudioEngine.seek(0);
-      return;
-    }
+    if (AudioEngine.currentTime > 3) { AudioEngine.seek(0); return; }
     const idx = State.advance(-1);
     playSong(idx);
   }
@@ -445,6 +542,7 @@ const Player = (() => {
     State.setShuffle(!State.isShuffle);
     UI.el.btnShuffle.classList.toggle('active', State.isShuffle);
     if (State.currentIdx >= 0) State.buildQueue(State.currentIdx);
+    UI.updatePosition();
   }
 
   function toggleRepeat() {
@@ -453,12 +551,8 @@ const Player = (() => {
   }
 
   AudioEngine.onEnd(() => {
-    if (State.isRepeat) {
-      AudioEngine.seek(0);
-      AudioEngine.play();
-    } else {
-      playNext();
-    }
+    if (State.isRepeat) { AudioEngine.seek(0); AudioEngine.play(); }
+    else playNext();
   });
 
   AudioEngine.onTime((cur, dur) => { UI.updateProgress(cur, dur); });
@@ -472,6 +566,7 @@ const Player = (() => {
    =========================== */
 const Search = (() => {
   let _debounceTimer = null;
+  let _lastSaved = '';
 
   function run(query) {
     query = query.trim().toLowerCase();
@@ -479,8 +574,12 @@ const Search = (() => {
 
     if (!query) {
       UI.showView(State.activeView === 'search' ? 'home' : State.activeView);
+      UI.renderSearchHistory();
       return;
     }
+
+    // Hide history while typing
+    if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
 
     const results = State.songs.reduce((acc, song, i) => {
       const haystack = (song.title + ' ' + (song.artist || '')).toLowerCase();
@@ -489,12 +588,22 @@ const Search = (() => {
     }, []);
 
     UI.showView('search');
-    UI.el.searchResultInfo.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} for "${query}"`;
+    UI.el.searchResultInfo.textContent =
+      `${results.length} result${results.length !== 1 ? 's' : ''} for "${query}"`;
     UI.renderSongList(
       UI.el.songListSearch,
       results.map(r => r.song),
       results.map(r => r.idx)
     );
+
+    // Save to history after 1s pause (only if meaningful)
+    if (query !== _lastSaved && query.length >= 2) {
+      clearTimeout(_debounceTimer);
+      _debounceTimer = setTimeout(() => {
+        State.addSearchHistory(query);
+        _lastSaved = query;
+      }, 1000);
+    }
   }
 
   function debounce(query) {
@@ -563,13 +672,11 @@ const Playlists = (() => {
    =========================== */
 function makeSlider(trackEl, onChange) {
   let dragging = false;
-
-  function getVal(e) {
+  const getVal = e => {
     const rect = trackEl.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-  }
-
+  };
   trackEl.addEventListener('mousedown', e => { dragging = true; onChange(getVal(e)); });
   trackEl.addEventListener('touchstart', e => { dragging = true; onChange(getVal(e)); }, { passive: true });
   document.addEventListener('mousemove', e => { if (dragging) onChange(getVal(e)); });
@@ -584,36 +691,37 @@ function makeSlider(trackEl, onChange) {
 async function init() {
   UI.el.greetingTime.textContent = UI.greeting();
 
-  // ---- LOAD SONGS ----
+  // ── LOAD SONGS ──
   try {
     const res = await fetch('./songs.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const songs = await res.json();
     if (!Array.isArray(songs) || songs.length === 0) throw new Error('Empty songs list');
     State.setSongs(songs);
+    if (UI.el.songCountLabel)
+      UI.el.songCountLabel.textContent = `${songs.length} songs in your library`;
     console.log(`✅ Loaded ${songs.length} songs`);
   } catch (e) {
     console.error('❌ Could not load songs.json:', e.message);
     State.setSongs([]);
   }
 
-  // Render song lists
   const allIdx = State.songs.map((_, i) => i);
   UI.renderSongList(UI.el.songListHome, State.songs, allIdx);
   UI.renderSongList(UI.el.songListLib, State.songs, allIdx);
   UI.renderSidebarPlaylists();
   UI.renderPlaylistGrid();
 
-  // Volume
   AudioEngine.setVolume(State.volume);
   UI.updateVolume(State.volume);
 
-  // ---- NAV ----
+  // ── NAV ──
   UI.el.navItems.forEach(btn => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
       UI.el.searchInput.value = '';
       UI.el.searchClear.classList.remove('visible');
+      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
       UI.showView(view);
       if (view === 'playlists') {
         UI.el.playlistGrid.style.display = '';
@@ -626,14 +734,13 @@ async function init() {
     });
   });
 
-  // ---- SONG CLICK ----
+  // ── SONG CLICK ──
   function handleSongListClick(e) {
     const btn = e.target.closest('[data-action]');
     if (btn) {
       e.stopPropagation();
-      if (btn.dataset.action === 'add-to-playlist') {
+      if (btn.dataset.action === 'add-to-playlist')
         Playlists.openAddToPlaylist(parseInt(btn.dataset.idx, 10));
-      }
       return;
     }
     const li = e.target.closest('.song-item');
@@ -643,18 +750,43 @@ async function init() {
   [UI.el.songListHome, UI.el.songListLib, UI.el.songListSearch, UI.el.songListPlaylist]
     .forEach(ul => ul.addEventListener('click', handleSongListClick));
 
-  // ---- SEARCH ----
-  UI.el.searchInput.addEventListener('input', e => Search.debounce(e.target.value));
-  UI.el.searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { UI.el.searchInput.value = ''; Search.run(''); }
+  // ── SEARCH with history ──
+  UI.el.searchInput.addEventListener('focus', () => {
+    if (!UI.el.searchInput.value.trim()) UI.renderSearchHistory();
   });
+
+  UI.el.searchInput.addEventListener('input', e => {
+    Search.debounce(e.target.value);
+    if (!e.target.value.trim()) UI.renderSearchHistory();
+  });
+
+  UI.el.searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      UI.el.searchInput.value = '';
+      Search.run('');
+      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
+    }
+    if (e.key === 'Enter' && UI.el.searchInput.value.trim()) {
+      State.addSearchHistory(UI.el.searchInput.value.trim());
+      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
+    }
+  });
+
   UI.el.searchClear.addEventListener('click', () => {
     UI.el.searchInput.value = '';
     Search.run('');
     UI.el.searchInput.focus();
+    UI.renderSearchHistory();
   });
 
-  // ---- PLAYER CONTROLS ----
+  // Hide history when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap') && !e.target.closest('#search-history')) {
+      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
+    }
+  });
+
+  // ── PLAYER CONTROLS ──
   UI.el.btnPlay.addEventListener('click', Player.togglePlay);
   UI.el.btnNext.addEventListener('click', Player.playNext);
   UI.el.btnPrev.addEventListener('click', Player.playPrev);
@@ -667,7 +799,7 @@ async function init() {
     UI.el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
   });
 
-  // ---- PROGRESS & VOLUME SLIDERS ----
+  // ── SLIDERS ──
   makeSlider(UI.el.progressTrack, pct => {
     AudioEngine.seek(pct);
     UI.updateProgress(AudioEngine.currentTime, AudioEngine.duration);
@@ -688,7 +820,7 @@ async function init() {
     UI.updateVolume(muted ? 0 : State.volume);
   });
 
-  // ---- PLAYLISTS ----
+  // ── PLAYLISTS ──
   UI.el.newPlaylistBtn.addEventListener('click', Playlists.openNewPlaylistModal);
   UI.el.confirmNewPlaylist.addEventListener('click', Playlists.confirmCreate);
   UI.el.playlistNameInput.addEventListener('keydown', e => {
@@ -702,10 +834,7 @@ async function init() {
 
   UI.el.playlistList.addEventListener('click', e => {
     const li = e.target.closest('li[data-id]');
-    if (li) {
-      UI.showView('playlists');
-      UI.openPlaylistDetail(parseInt(li.dataset.id, 10));
-    }
+    if (li) { UI.showView('playlists'); UI.openPlaylistDetail(parseInt(li.dataset.id, 10)); }
   });
 
   UI.el.playlistBack.addEventListener('click', UI.closePlaylistDetail);
@@ -715,22 +844,21 @@ async function init() {
     if (li) Playlists.addSongToPlaylist(parseInt(li.dataset.id, 10));
   });
 
-  // ---- MODAL CLOSE ----
+  // ── MODAL CLOSE ──
   document.querySelectorAll('.modal-close, [data-modal]').forEach(btn => {
     btn.addEventListener('click', () => UI.closeModal(btn.dataset.modal));
   });
   UI.el.modalBackdrop.addEventListener('click', e => {
-    if (e.target === UI.el.modalBackdrop) {
+    if (e.target === UI.el.modalBackdrop)
       document.querySelectorAll('.modal.open').forEach(m => UI.closeModal(m.id));
-    }
   });
 
-  // ---- MOBILE SIDEBAR ----
+  // ── MOBILE ──
   UI.el.mobileMenuBtn.addEventListener('click', UI.openSidebar);
   UI.el.sidebarClose.addEventListener('click', UI.closeSidebar);
   UI.el.sidebarOverlay.addEventListener('click', UI.closeSidebar);
 
-  // ---- KEYBOARD SHORTCUTS ----
+  // ── KEYBOARD ──
   document.addEventListener('keydown', e => {
     const tag = document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
