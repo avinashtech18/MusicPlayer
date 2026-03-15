@@ -6,21 +6,21 @@ import os
 # ===========================
 
 # Check if files exist
-if not os.path.exists('songs.json'):
+if not os.path.exists('songs1.json'):
     print("❌ songs.json not found!")
     exit()
 
-if not os.path.exists('new_songs.json'):
+if not os.path.exists('songs.json'):
     print("❌ new_songs.json not found! Rename your new downloaded file to new_songs.json")
     exit()
 
 # Load existing songs
-with open('songs.json', 'r', encoding='utf-8') as f:
+with open('songs1.json', 'r', encoding='utf-8') as f:
     old_songs = json.load(f)
 print(f"📂 Old songs loaded: {len(old_songs)}")
 
 # Load new songs
-with open('new_songs.json', 'r', encoding='utf-8') as f:
+with open('songs.json', 'r', encoding='utf-8') as f:
     new_songs = json.load(f)
 print(f"📂 New songs loaded: {len(new_songs)}")
 
