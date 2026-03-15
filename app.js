@@ -9,10 +9,10 @@
    STATE
    =========================== */
 const State = (() => {
-  let _songs = [];       // All songs from songs.json
-  let _queue = [];       // Current playback queue (indices into _songs)
-  let _queueIdx = -1;       // Position in queue
-  let _currentIdx = -1;       // Index in _songs of currently playing song
+  let _songs = [];
+  let _queue = [];
+  let _queueIdx = -1;
+  let _currentIdx = -1;
   let _isPlaying = false;
   let _isShuffle = false;
   let _isRepeat = false;
@@ -52,7 +52,6 @@ const State = (() => {
 
     buildQueue(songIdx) {
       if (_isShuffle) {
-        // Fisher-Yates shuffle, keep songIdx first
         const indices = _songs.map((_, i) => i).filter(i => i !== songIdx);
         for (let i = indices.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -68,7 +67,6 @@ const State = (() => {
     },
 
     advance(dir = 1) {
-      // dir: 1 = next, -1 = prev
       _queueIdx = (_queueIdx + dir + _queue.length) % _queue.length;
       _currentIdx = _queue[_queueIdx];
       return _currentIdx;
@@ -123,15 +121,10 @@ const AudioEngine = (() => {
   audio.addEventListener('error', () => console.warn('Audio error for:', audio.src));
 
   return {
-    load(url) {
-      audio.src = url;
-      audio.load();
-    },
+    load(url) { audio.src = url; audio.load(); },
     play() { return audio.play().catch(() => { }); },
     pause() { audio.pause(); },
-    seek(pct) {
-      if (audio.duration) audio.currentTime = pct * audio.duration;
-    },
+    seek(pct) { if (audio.duration) audio.currentTime = pct * audio.duration; },
     setVolume(v) { audio.volume = v; },
     setMuted(v) { audio.muted = v; },
     get currentTime() { return audio.currentTime; },
@@ -151,7 +144,6 @@ const UI = (() => {
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
   const el = {
-    // Sidebar
     sidebar: $('#sidebar'),
     sidebarOverlay: $('#sidebar-overlay'),
     sidebarClose: $('#sidebar-close'),
@@ -159,11 +151,9 @@ const UI = (() => {
     navItems: $$('.nav-item'),
     playlistList: $('#playlist-list'),
     newPlaylistBtn: $('#new-playlist-btn'),
-    // Topbar
     searchInput: $('#search-input'),
     searchClear: $('#search-clear'),
     greetingTime: $('#greeting-time'),
-    // Views
     views: $$('.view'),
     songListHome: $('#song-list-home'),
     songListLib: $('#song-list-library'),
@@ -175,7 +165,6 @@ const UI = (() => {
     playlistDetailTitle: $('#playlist-detail-title'),
     playlistDetailCount: $('#playlist-detail-count'),
     playlistBack: $('#playlist-back'),
-    // Player
     playerTitle: $('#player-title'),
     playerArtist: $('#player-artist'),
     playerArt: $('#player-art'),
@@ -198,7 +187,6 @@ const UI = (() => {
     volumeTrack: $('#volume-track'),
     volumeFill: $('#volume-fill'),
     volumeThumb: $('#volume-thumb'),
-    // Modals
     modalBackdrop: $('#modal-backdrop'),
     modalNewPlaylist: $('#modal-new-playlist'),
     playlistNameInput: $('#playlist-name-input'),
@@ -221,7 +209,14 @@ const UI = (() => {
     return 'evening';
   }
 
-  // Build a song <li> element (uses document fragment for performance)
+  function escHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function createSongItem(song, songIdx, displayNum) {
     const li = document.createElement('li');
     li.className = 'song-item';
@@ -244,13 +239,7 @@ const UI = (() => {
     return li;
   }
 
-  function escHtml(str) {
-    return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // Render a list of songs into a <ul> using document fragment (efficient)
   function renderSongList(ulEl, songs, indexMap) {
-    // indexMap: array of original song indices matching `songs` order
     const frag = document.createDocumentFragment();
     if (!songs.length) {
       const li = document.createElement('li');
@@ -307,8 +296,8 @@ const UI = (() => {
   function updatePlayerMeta(song) {
     if (!song) return;
     el.playerTitle.textContent = song.title;
-    el.playerArt.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
     el.playerArtist.textContent = song.artist || '—';
+    el.playerArt.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
     el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
   }
 
@@ -444,7 +433,6 @@ const Player = (() => {
   }
 
   function playPrev() {
-    // If more than 3s in, restart song
     if (AudioEngine.currentTime > 3) {
       AudioEngine.seek(0);
       return;
@@ -456,7 +444,6 @@ const Player = (() => {
   function toggleShuffle() {
     State.setShuffle(!State.isShuffle);
     UI.el.btnShuffle.classList.toggle('active', State.isShuffle);
-    // Rebuild queue from current song
     if (State.currentIdx >= 0) State.buildQueue(State.currentIdx);
   }
 
@@ -465,7 +452,6 @@ const Player = (() => {
     UI.el.btnRepeat.classList.toggle('active', State.isRepeat);
   }
 
-  // Set up audio callbacks
   AudioEngine.onEnd(() => {
     if (State.isRepeat) {
       AudioEngine.seek(0);
@@ -475,13 +461,8 @@ const Player = (() => {
     }
   });
 
-  AudioEngine.onTime((cur, dur) => {
-    UI.updateProgress(cur, dur);
-  });
-
-  AudioEngine.onLoad((dur) => {
-    UI.updateProgress(0, dur);
-  });
+  AudioEngine.onTime((cur, dur) => { UI.updateProgress(cur, dur); });
+  AudioEngine.onLoad((dur) => { UI.updateProgress(0, dur); });
 
   return { playSong, togglePlay, playNext, playPrev, toggleShuffle, toggleRepeat };
 })();
@@ -550,7 +531,7 @@ const Playlists = (() => {
     const ul = UI.el.modalPlaylistList;
     ul.innerHTML = '';
     if (!State.playlists.length) {
-      ul.innerHTML = '<li style="color:var(--text-muted);padding:10px 12px;">No playlists yet. Create one first.</li>';
+      ul.innerHTML = '<li style="color:var(--text-2);padding:10px 12px;">No playlists yet. Create one first.</li>';
     } else {
       State.playlists.forEach(pl => {
         const li = document.createElement('li');
@@ -578,7 +559,7 @@ const Playlists = (() => {
 })();
 
 /* ===========================
-   SLIDER UTIL (progress / volume)
+   SLIDER UTIL
    =========================== */
 function makeSlider(trackEl, onChange) {
   let dragging = false;
@@ -591,44 +572,39 @@ function makeSlider(trackEl, onChange) {
 
   trackEl.addEventListener('mousedown', e => { dragging = true; onChange(getVal(e)); });
   trackEl.addEventListener('touchstart', e => { dragging = true; onChange(getVal(e)); }, { passive: true });
-
   document.addEventListener('mousemove', e => { if (dragging) onChange(getVal(e)); });
   document.addEventListener('touchmove', e => { if (dragging) onChange(getVal(e)); }, { passive: true });
-
   document.addEventListener('mouseup', () => { dragging = false; });
   document.addEventListener('touchend', () => { dragging = false; });
 }
 
 /* ===========================
-   INIT & EVENT WIRING
+   INIT
    =========================== */
 async function init() {
-  // Greeting
   UI.el.greetingTime.textContent = UI.greeting();
 
-  // Load songs
+  // ---- LOAD SONGS ----
   try {
-    const res = await fetch('songs.json');
+    const res = await fetch('./songs.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const songs = await res.json();
+    if (!Array.isArray(songs) || songs.length === 0) throw new Error('Empty songs list');
     State.setSongs(songs);
+    console.log(`✅ Loaded ${songs.length} songs`);
   } catch (e) {
-    console.warn('Could not load songs.json, using placeholder data.');
-    // Fallback demo data so UI isn't empty
-    State.setSongs([
-      { title: "Demo Song 1", artist: "Add songs.json", url: "" },
-      { title: "Demo Song 2", artist: "Add songs.json", url: "" },
-      { title: "Demo Song 3", artist: "Add songs.json", url: "" },
-    ]);
+    console.error('❌ Could not load songs.json:', e.message);
+    State.setSongs([]);
   }
 
-  // Render lists
+  // Render song lists
   const allIdx = State.songs.map((_, i) => i);
   UI.renderSongList(UI.el.songListHome, State.songs, allIdx);
   UI.renderSongList(UI.el.songListLib, State.songs, allIdx);
   UI.renderSidebarPlaylists();
   UI.renderPlaylistGrid();
 
-  // Volume init
+  // Volume
   AudioEngine.setVolume(State.volume);
   UI.updateVolume(State.volume);
 
@@ -650,15 +626,13 @@ async function init() {
     });
   });
 
-  // ---- SONG CLICK (event delegation for all lists) ----
+  // ---- SONG CLICK ----
   function handleSongListClick(e) {
     const btn = e.target.closest('[data-action]');
     if (btn) {
-      const action = btn.dataset.action;
-      const idx = parseInt(btn.dataset.idx, 10);
-      if (action === 'add-to-playlist') {
-        e.stopPropagation();
-        Playlists.openAddToPlaylist(idx);
+      e.stopPropagation();
+      if (btn.dataset.action === 'add-to-playlist') {
+        Playlists.openAddToPlaylist(parseInt(btn.dataset.idx, 10));
       }
       return;
     }
@@ -666,17 +640,13 @@ async function init() {
     if (li) Player.playSong(parseInt(li.dataset.idx, 10));
   }
 
-  [UI.el.songListHome, UI.el.songListLib, UI.el.songListSearch, UI.el.songListPlaylist].forEach(ul => {
-    ul.addEventListener('click', handleSongListClick);
-  });
+  [UI.el.songListHome, UI.el.songListLib, UI.el.songListSearch, UI.el.songListPlaylist]
+    .forEach(ul => ul.addEventListener('click', handleSongListClick));
 
   // ---- SEARCH ----
   UI.el.searchInput.addEventListener('input', e => Search.debounce(e.target.value));
   UI.el.searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      UI.el.searchInput.value = '';
-      Search.run('');
-    }
+    if (e.key === 'Escape') { UI.el.searchInput.value = ''; Search.run(''); }
   });
   UI.el.searchClear.addEventListener('click', () => {
     UI.el.searchInput.value = '';
@@ -697,13 +667,12 @@ async function init() {
     UI.el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
   });
 
-  // ---- PROGRESS SLIDER ----
+  // ---- PROGRESS & VOLUME SLIDERS ----
   makeSlider(UI.el.progressTrack, pct => {
     AudioEngine.seek(pct);
     UI.updateProgress(AudioEngine.currentTime, AudioEngine.duration);
   });
 
-  // ---- VOLUME SLIDER ----
   makeSlider(UI.el.volumeTrack, pct => {
     State.setVolume(pct);
     State.setMuted(pct === 0);
@@ -722,13 +691,13 @@ async function init() {
   // ---- PLAYLISTS ----
   UI.el.newPlaylistBtn.addEventListener('click', Playlists.openNewPlaylistModal);
   UI.el.confirmNewPlaylist.addEventListener('click', Playlists.confirmCreate);
-  UI.el.playlistNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') Playlists.confirmCreate(); });
+  UI.el.playlistNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') Playlists.confirmCreate();
+  });
 
   UI.el.playlistGrid.addEventListener('click', e => {
     const card = e.target.closest('.playlist-card');
-    if (card) {
-      UI.openPlaylistDetail(parseInt(card.dataset.id, 10));
-    }
+    if (card) UI.openPlaylistDetail(parseInt(card.dataset.id, 10));
   });
 
   UI.el.playlistList.addEventListener('click', e => {
