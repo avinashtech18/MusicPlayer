@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload to Cloudinary</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #fff;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #00e5ff;
+        }
+
+        .box {
+            background: #1a1a2e;
+            border: 2px dashed #333;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        input[type=file] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #7c6af7;
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 99px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .upload-btn:hover {
+            background: #a095ff;
+        }
+
+        .progress {
+            margin-top: 20px;
+        }
+
+        .song-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #222;
+            border-radius: 6px;
+            margin: 4px 0;
+            font-size: 13px;
+        }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pending {
+            background: #333;
+            color: #aaa;
+        }
+
+        .uploading {
+            background: #1a3a5c;
+            color: #00e5ff;
+        }
+
+        .done {
+            background: #0a3a2a;
+            color: #00e5a0;
+        }
+
+        .error {
+            background: #3a0a0a;
+            color: #ff5572;
+        }
+
+        #summary {
+            background: #1a2a1a;
+            border: 1px solid #00e5a0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #summary h2 {
+            color: #00e5a0;
+            margin-bottom: 10px;
+        }
+
+        .dl-btn {
+            background: #00e5a0;
+            color: #000;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 99px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+
+        #counter {
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎵 Cloudinary MP3 Uploader</h1>
+    <p style="color:#aaa">Uploads your MP3s using the <b>actual filename</b> — no more random IDs!</p>
+
+    <div class="box">
+        <p style="margin-bottom:16px;color:#aaa">Select all your MP3 files at once</p>
+        <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+            📁 Choose MP3 Files
+        </button>
+        <input type="file" id="file-input" accept=".mp3,audio/*" multiple onchange="startUpload(this.files)" />
+        <div id="counter"></div>
+    </div>
+
+    <div class="progress" id="progress"></div>
+
+    <div id="summary">
+        <h2>✅ Upload Complete!</h2>
+        <p id="summary-text"></p>
+        <button class="dl-btn" onclick="downloadJSON()">⬇️ Download songs.json</button>
+    </div>
+
+    <script>
+        // ✅ YOUR CLOUDINARY DETAILS
+        const CLOUD_NAME = 'dntiwkfmp';
+        const UPLOAD_PRESET = 'TamilSongs';
+
+        let uploadedSongs = [];
+        let total = 0;
+        let done = 0;
+
+        async function startUpload(files) {
+            if (!files.length) return;
+            total = files.length;
+            done = 0;
+            uploadedSongs = [];
+
+            document.getElementById('counter').textContent = `${total} files selected`;
+            document.getElementById('progress').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+
+            // Create rows
+            const rows = {};
+            [...files].forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'song-row';
+                div.id = 'row-' + file.name;
+                div.innerHTML = `<span>${file.name}</span><span class="status pending" id="st-${CSS.escape(file.name)}">Waiting...</span>`;
+                document.getElementById('progress').appendChild(div);
+                rows[file.name] = div;
+            });
+
+            // Upload one by one (avoid rate limits)
+            for (const file of files) {
+                await uploadFile(file);
+            }
+
+            // Show summary
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('summary-text').textContent =
+                `Successfully uploaded ${uploadedSongs.length} of ${total} songs.`;
+        }
+
+        async function uploadFile(file) {
+            const stEl = document.getElementById('st-' + CSS.escape(file.name));
+            if (stEl) { stEl.className = 'status uploading'; stEl.textContent = 'Uploading...'; }
+
+            // Use filename (without .mp3) as public_id
+            const publicId = file.name.replace(/\.mp3$/i, '');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+            formData.append('public_id', publicId);
+            formData.append('resource_type', 'video');
+
+            try {
+                const res = await fetch(
+                    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`,
+                    { method: 'POST', body: formData }
+                );
+                const data = await res.json();
+
+                if (data.secure_url) {
+                    // Clean title from filename
+                    const title = publicId.replace(/[_\-]+/g, ' ').trim()
+                        .replace(/\b\w/g, c => c.toUpperCase());
+
+                    uploadedSongs.push({
+                        title: title,
+                        artist: 'Unknown',
+                        url: data.secure_url
+                    });
+
+                    if (stEl) { stEl.className = 'status done'; stEl.textContent = '✓ Done'; }
+                } else {
+                    throw new Error(data.error?.message || 'Upload failed');
+                }
+            } catch (e) {
+                if (stEl) { stEl.className = 'status error'; stEl.textContent = '✗ Failed'; }
+                console.error('Upload error for', file.name, e);
+            }
+
+            done++;
+            document.getElementById('counter').textContent =
+                `${done} / ${total} uploaded`;
+        }
+
+        function downloadJSON() {
+            const json = JSON.stringify(uploadedSongs, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'songs.json';
+            a.click();
+        }
+    </script>
+
+</body>
+
+</html>
