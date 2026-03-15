@@ -55,24 +55,60 @@ body {
   overflow: hidden;
 }
 
+/* ── DESKTOP: full width, no sidebar column ── */
 body {
   display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr var(--player-h);
-  grid-template-areas: "sidebar main" "player player";
+  grid-template-areas: "main" "player";
 }
 
 /* ===========================
-   SIDEBAR
+   SIDEBAR — slide-in for ALL screens
    =========================== */
 .sidebar {
-  grid-area: sidebar;
+  position: fixed;
+  top: 0;
+  left: -270px;
+  bottom: calc(var(--player-h) + 1px);
+  width: var(--sidebar-w);
   background: var(--bg-surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 100;
+  z-index: 300;
+  transition: transform 0.3s ease;
+}
+
+.sidebar.open {
+  transform: translateX(270px);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 290;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+}
+
+/* Always show close button */
+.sidebar-close {
+  display: flex;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  color: var(--text-2);
+}
+
+/* Always show menu button */
+.mobile-menu-btn {
+  display: flex;
 }
 
 .sidebar-logo {
@@ -207,10 +243,6 @@ body {
   color: var(--neon-pink);
 }
 
-.sidebar-close {
-  display: none;
-}
-
 /* ===========================
    MAIN
    =========================== */
@@ -230,10 +262,6 @@ body {
   flex-shrink: 0;
   z-index: 10;
   position: relative;
-}
-
-.mobile-menu-btn {
-  display: none;
 }
 
 .search-wrap {
@@ -785,7 +813,6 @@ body {
   background: var(--grad-main);
 }
 
-/* Song info */
 .player-info {
   display: flex;
   align-items: center;
@@ -864,7 +891,6 @@ body {
   margin-top: 3px;
 }
 
-/* ── SONG POSITION BADGE ── */
 #player-position {
   display: none;
   font-size: 10px;
@@ -893,7 +919,6 @@ body {
   color: var(--neon-pink);
 }
 
-/* Controls */
 .player-controls {
   display: flex;
   flex-direction: column;
@@ -958,7 +983,6 @@ body {
   height: 26px !important;
 }
 
-/* Progress */
 .progress-row {
   display: flex;
   align-items: center;
@@ -1023,7 +1047,6 @@ body {
   box-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* Volume */
 .player-volume {
   display: flex;
   align-items: center;
@@ -1225,16 +1248,8 @@ body {
 }
 
 /* ===========================
-   MISC
+   SCROLLBAR
    =========================== */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 90;
-}
-
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -1269,42 +1284,6 @@ body {
 }
 
 @media (max-width: 720px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr var(--player-h);
-    grid-template-areas: "main" "player";
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -270px;
-    bottom: calc(var(--player-h) + 1px);
-    width: 255px;
-    transition: transform 0.3s ease;
-    z-index: 100;
-  }
-
-  .sidebar.open {
-    transform: translateX(270px);
-  }
-
-  .sidebar-overlay.visible {
-    display: block;
-  }
-
-  .sidebar-close {
-    display: flex;
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    color: var(--text-2);
-  }
-
-  .mobile-menu-btn {
-    display: flex;
-  }
-
   .topbar {
     padding: 14px 16px;
   }

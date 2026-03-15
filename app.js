@@ -1,6 +1,6 @@
 /**
  * WAVVVE — Music Player
- * Features: Song Position, True Shuffle, Search History
+ * Features: Song Position, True Shuffle, Search History, Audio Visualizer
  */
 
 'use strict';
@@ -53,7 +53,6 @@ const State = (() => {
     setActiveView(v) { _activeView = v; },
     setOpenPlaylist(id) { _openPlaylistId = id; },
 
-    // ── TRUE SHUFFLE: Fisher-Yates, never repeats until all played ──
     buildQueue(songIdx) {
       if (_isShuffle) {
         const indices = _songs.map((_, i) => i).filter(i => i !== songIdx);
@@ -80,10 +79,7 @@ const State = (() => {
       return _currentIdx >= 0 ? _songs[_currentIdx] : null;
     },
 
-    // Position in queue (1-based)
-    queuePosition() {
-      return _queueIdx + 1;
-    },
+    queuePosition() { return _queueIdx + 1; },
 
     toggleLike(idx) {
       if (_likedSongs.has(idx)) _likedSongs.delete(idx);
@@ -91,15 +87,11 @@ const State = (() => {
       saveLiked();
     },
 
-    // ── SEARCH HISTORY ──
     addSearchHistory(query) {
       query = query.trim();
       if (!query) return;
-      // Remove duplicate
       _searchHistory = _searchHistory.filter(h => h.toLowerCase() !== query.toLowerCase());
-      // Add to front
       _searchHistory.unshift(query);
-      // Keep only last 10
       if (_searchHistory.length > 10) _searchHistory = _searchHistory.slice(0, 10);
       saveHistory();
     },
@@ -153,6 +145,7 @@ const AudioEngine = (() => {
   audio.addEventListener('error', () => console.warn('Audio error for:', audio.src));
 
   return {
+    get element() { return audio; },
     load(url) { audio.src = url; audio.load(); },
     play() { return audio.play().catch(() => { }); },
     pause() { audio.pause(); },
@@ -166,6 +159,159 @@ const AudioEngine = (() => {
     onTime(cb) { _onTime = cb; },
     onLoad(cb) { _onLoad = cb; },
   };
+})();
+
+/* ===========================
+   AUDIO VISUALIZER
+   =========================== */
+const Visualizer = (() => {
+  let _ctx = null;   // AudioContext
+  let _analyser = null;
+  let _source = null;
+  let _rafId = null;
+  let _canvas = null;
+  let _canvasCtx = null;
+  let _connected = false;
+  const BAR_COUNT = 28;
+
+  // Neon gradient colors matching the website theme
+  const COLORS = [
+    '#ff2d78', '#e8306e', '#d03464',
+    '#c44dff', '#b050ee', '#9a53dd',
+    '#7a56cc', '#5a59bb', '#3a5caa',
+    '#1a5f99', '#00e5ff'
+  ];
+
+  function getColor(index) {
+    const pos = index / BAR_COUNT;
+    if (pos < 0.4) return `hsl(${340 + pos * 60}, 100%, 60%)`;  // pink
+    else if (pos < 0.7) return `hsl(${280 + pos * 40}, 100%, 65%)`;  // purple
+    else return `hsl(${190 + pos * 20}, 100%, 60%)`;  // cyan
+  }
+
+  function init(audioElement) {
+    if (_connected) return;
+    try {
+      _ctx = new (window.AudioContext || window.webkitAudioContext)();
+      _analyser = _ctx.createAnalyser();
+      _source = _ctx.createMediaElementSource(audioElement);
+      _source.connect(_analyser);
+      _analyser.connect(_ctx.destination);
+      _analyser.fftSize = 128;
+      _connected = true;
+    } catch (e) {
+      console.warn('Visualizer init failed:', e);
+    }
+  }
+
+  function setupCanvas() {
+    _canvas = document.getElementById('visualizer-canvas');
+    if (!_canvas) return false;
+    _canvasCtx = _canvas.getContext('2d');
+    return true;
+  }
+
+  function start() {
+    if (!_connected || !_analyser) return;
+    if (!_canvas && !setupCanvas()) return;
+    if (_rafId) cancelAnimationFrame(_rafId);
+    draw();
+  }
+
+  function stop() {
+    if (_rafId) {
+      cancelAnimationFrame(_rafId);
+      _rafId = null;
+    }
+    if (_canvas && _canvasCtx) {
+      _canvasCtx.clearRect(0, 0, _canvas.width, _canvas.height);
+      drawIdle();
+    }
+  }
+
+  function draw() {
+    if (!_analyser || !_canvas || !_canvasCtx) return;
+
+    _rafId = requestAnimationFrame(draw);
+
+    const W = _canvas.width = _canvas.offsetWidth;
+    const H = _canvas.height = _canvas.offsetHeight;
+
+    const bufferLen = _analyser.frequencyBinCount;
+    const dataArr = new Uint8Array(bufferLen);
+    _analyser.getByteFrequencyData(dataArr);
+
+    _canvasCtx.clearRect(0, 0, W, H);
+
+    const barW = (W / BAR_COUNT) * 0.6;
+    const gap = (W / BAR_COUNT) * 0.4;
+    const step = Math.floor(bufferLen / BAR_COUNT);
+
+    for (let i = 0; i < BAR_COUNT; i++) {
+      // Average a few bins for smoother bars
+      let val = 0;
+      for (let k = 0; k < step; k++) {
+        val += dataArr[i * step + k];
+      }
+      val = val / step;
+
+      const barH = (val / 255) * H * 0.85 + 2;
+      const x = i * (barW + gap) + gap / 2;
+      const y = (H - barH) / 2; // center vertically
+
+      // Gradient per bar
+      const grad = _canvasCtx.createLinearGradient(0, y, 0, y + barH);
+      const col = getColor(i);
+      grad.addColorStop(0, col);
+      grad.addColorStop(0.5, col + 'cc');
+      grad.addColorStop(1, col);
+
+      // Glow effect
+      _canvasCtx.shadowColor = col;
+      _canvasCtx.shadowBlur = 8;
+
+      _canvasCtx.fillStyle = grad;
+      _canvasCtx.beginPath();
+      _canvasCtx.roundRect(x, y, barW, barH, 3);
+      _canvasCtx.fill();
+    }
+  }
+
+  // Idle animation — gentle breathing bars when paused
+  function drawIdle() {
+    if (!_canvas || !_canvasCtx) return;
+    const W = _canvas.width = _canvas.offsetWidth;
+    const H = _canvas.height = _canvas.offsetHeight;
+
+    _canvasCtx.clearRect(0, 0, W, H);
+
+    const barW = (W / BAR_COUNT) * 0.6;
+    const gap = (W / BAR_COUNT) * 0.4;
+    const t = Date.now() / 1000;
+
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const wave = Math.sin(t * 1.5 + i * 0.4) * 0.3 + 0.35;
+      const barH = wave * H * 0.5 + 2;
+      const x = i * (barW + gap) + gap / 2;
+      const y = (H - barH) / 2;
+      const col = getColor(i);
+
+      _canvasCtx.shadowColor = col;
+      _canvasCtx.shadowBlur = 4;
+      _canvasCtx.fillStyle = col + '55';
+      _canvasCtx.beginPath();
+      _canvasCtx.roundRect(x, y, barW, barH, 3);
+      _canvasCtx.fill();
+    }
+
+    _rafId = requestAnimationFrame(drawIdle);
+  }
+
+  function resume() {
+    if (_ctx && _ctx.state === 'suspended') _ctx.resume();
+  }
+
+  return { init, start, stop, drawIdle, resume, setupCanvas };
 })();
 
 /* ===========================
@@ -328,13 +474,11 @@ const UI = (() => {
     if (!song) return;
     el.playerTitle.textContent = song.title;
     el.playerArtist.textContent = song.artist || '—';
-    el.playerArt.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+    // Keep canvas, don't replace player-art inner HTML
     el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
-    // ── UPDATE SONG POSITION ──
     updatePosition();
   }
 
-  // ── SONG POSITION: "Playing 45 of 300" ──
   function updatePosition() {
     if (!el.playerPosition) return;
     const pos = State.queuePosition();
@@ -347,7 +491,6 @@ const UI = (() => {
     }
   }
 
-  // ── SEARCH HISTORY UI ──
   function renderSearchHistory() {
     if (!el.searchHistory) return;
     const history = State.searchHistory;
@@ -375,13 +518,11 @@ const UI = (() => {
       </ul>`;
     el.searchHistory.classList.add('visible');
 
-    // Clear all button
     document.getElementById('sh-clear-all')?.addEventListener('click', () => {
       State.clearSearchHistory();
       renderSearchHistory();
     });
 
-    // Click on history item
     el.searchHistory.querySelectorAll('.sh-query').forEach(btn => {
       btn.addEventListener('click', () => {
         el.searchInput.value = btn.dataset.query;
@@ -390,7 +531,6 @@ const UI = (() => {
       });
     });
 
-    // Remove single item
     el.searchHistory.querySelectorAll('.sh-remove').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -507,11 +647,17 @@ const Player = (() => {
     State.buildQueue(songIdx);
     AudioEngine.load(song.url);
     AudioEngine.setVolume(State.isMuted ? 0 : State.volume);
+
+    // Init visualizer on first play (requires user gesture)
+    Visualizer.init(AudioEngine.element);
+    Visualizer.resume();
+
     AudioEngine.play().then(() => {
       State.setPlaying(true);
       UI.updatePlayButton(true);
       UI.updatePlayerMeta(song);
       UI.highlightAllLists();
+      Visualizer.start();
     });
   }
 
@@ -520,9 +666,12 @@ const Player = (() => {
     if (State.isPlaying) {
       AudioEngine.pause();
       State.setPlaying(false);
+      Visualizer.stop();
     } else {
+      Visualizer.resume();
       AudioEngine.play();
       State.setPlaying(true);
+      Visualizer.start();
     }
     UI.updatePlayButton(State.isPlaying);
   }
@@ -578,7 +727,6 @@ const Search = (() => {
       return;
     }
 
-    // Hide history while typing
     if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
 
     const results = State.songs.reduce((acc, song, i) => {
@@ -596,7 +744,6 @@ const Search = (() => {
       results.map(r => r.idx)
     );
 
-    // Save to history after 1s pause (only if meaningful)
     if (query !== _lastSaved && query.length >= 2) {
       clearTimeout(_debounceTimer);
       _debounceTimer = setTimeout(() => {
@@ -715,6 +862,10 @@ async function init() {
   AudioEngine.setVolume(State.volume);
   UI.updateVolume(State.volume);
 
+  // Start idle visualizer animation
+  Visualizer.setupCanvas();
+  Visualizer.drawIdle();
+
   // ── NAV ──
   UI.el.navItems.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -750,7 +901,7 @@ async function init() {
   [UI.el.songListHome, UI.el.songListLib, UI.el.songListSearch, UI.el.songListPlaylist]
     .forEach(ul => ul.addEventListener('click', handleSongListClick));
 
-  // ── SEARCH with history ──
+  // ── SEARCH ──
   UI.el.searchInput.addEventListener('focus', () => {
     if (!UI.el.searchInput.value.trim()) UI.renderSearchHistory();
   });
@@ -779,7 +930,6 @@ async function init() {
     UI.renderSearchHistory();
   });
 
-  // Hide history when clicking outside
   document.addEventListener('click', e => {
     if (!e.target.closest('.search-wrap') && !e.target.closest('#search-history')) {
       if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');

@@ -85,7 +85,6 @@
               d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
           </svg>
         </button>
-        <!-- SEARCH HISTORY DROPDOWN -->
         <div id="search-history"></div>
       </div>
     </header>
@@ -166,17 +165,14 @@
 
   <footer class="player-bar" id="player-bar">
 
-    <!-- SONG INFO -->
     <div class="player-info">
+      <!-- VISUALIZER replaces old player-art icon -->
       <div class="player-art" id="player-art">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-        </svg>
+        <canvas id="visualizer-canvas"></canvas>
       </div>
       <div class="player-meta">
         <div class="player-title" id="player-title">Nothing playing</div>
         <div class="player-artist" id="player-artist">—</div>
-        <!-- SONG POSITION BADGE -->
         <div id="player-position"></div>
       </div>
       <button class="btn-icon player-heart" id="player-heart" title="Like">
@@ -187,7 +183,6 @@
       </button>
     </div>
 
-    <!-- CONTROLS -->
     <div class="player-controls">
       <div class="control-buttons">
         <button class="btn-icon ctrl-btn" id="btn-shuffle" title="Shuffle (S)">
@@ -230,7 +225,6 @@
       </div>
     </div>
 
-    <!-- VOLUME -->
     <div class="player-volume">
       <button class="btn-icon ctrl-btn" id="btn-mute" title="Mute (M)">
         <svg class="icon-vol-up" viewBox="0 0 24 24">
@@ -250,7 +244,6 @@
 
   </footer>
 
-  <!-- MODALS -->
   <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal" id="modal-new-playlist">
       <div class="modal-header">
