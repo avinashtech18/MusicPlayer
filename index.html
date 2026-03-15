@@ -8,13 +8,13 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" async></script>
 </head>
 
 <body>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <span class="logo-mark">W</span>
@@ -56,6 +56,16 @@
       <ul class="playlist-list" id="playlist-list"></ul>
     </div>
 
+    <div class="sidebar-upload">
+      <button class="btn-upload-song" id="btn-upload-cloudinary">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+        </svg>
+        Upload Song
+      </button>
+      <p class="upload-hint">Upload MP3 to Cloudinary,<br>then add URL to songs.json</p>
+    </div>
+
     <button class="sidebar-close" id="sidebar-close">
       <svg viewBox="0 0 24 24">
         <path
@@ -64,13 +74,9 @@
     </button>
   </aside>
 
-  <!-- OVERLAY -->
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- MAIN -->
   <main class="main-content">
-
-    <!-- TOPBAR -->
     <header class="topbar">
       <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
         <svg viewBox="0 0 24 24">
@@ -93,14 +99,12 @@
       </div>
     </header>
 
-    <!-- VIEWS -->
     <div class="view-container">
 
-      <!-- HOME VIEW -->
       <section class="view active" id="view-home">
         <div class="view-header">
           <h1 class="view-title">Good <span id="greeting-time">evening</span></h1>
-          <p class="view-subtitle">Pick up where you left off</p>
+          <p class="view-subtitle" id="song-count-label">Loading songs…</p>
         </div>
         <div class="song-list-header">
           <div class="col-num">#</div>
@@ -111,7 +115,6 @@
         <ul class="song-list" id="song-list-home" role="list"></ul>
       </section>
 
-      <!-- LIBRARY VIEW -->
       <section class="view" id="view-library">
         <div class="view-header">
           <h1 class="view-title">Your Library</h1>
@@ -126,7 +129,6 @@
         <ul class="song-list" id="song-list-library" role="list"></ul>
       </section>
 
-      <!-- PLAYLISTS VIEW -->
       <section class="view" id="view-playlists">
         <div class="view-header">
           <h1 class="view-title">Playlists</h1>
@@ -138,7 +140,7 @@
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
             </svg>
-            Back to Playlists
+            Back
           </button>
           <div class="view-header">
             <h1 class="view-title" id="playlist-detail-title"></h1>
@@ -154,7 +156,6 @@
         </div>
       </section>
 
-      <!-- SEARCH RESULTS VIEW -->
       <section class="view" id="view-search">
         <div class="view-header">
           <h1 class="view-title">Search Results</h1>
@@ -172,10 +173,7 @@
     </div>
   </main>
 
-  <!-- PLAYER BAR -->
   <footer class="player-bar" id="player-bar">
-
-    <!-- SONG INFO -->
     <div class="player-info">
       <div class="player-art" id="player-art">
         <svg viewBox="0 0 24 24">
@@ -194,21 +192,20 @@
       </button>
     </div>
 
-    <!-- CONTROLS -->
     <div class="player-controls">
       <div class="control-buttons">
-        <button class="btn-icon ctrl-btn" id="btn-shuffle" title="Shuffle">
+        <button class="btn-icon ctrl-btn" id="btn-shuffle" title="Shuffle (S)">
           <svg viewBox="0 0 24 24">
             <path
               d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
           </svg>
         </button>
-        <button class="btn-icon ctrl-btn" id="btn-prev" title="Previous">
+        <button class="btn-icon ctrl-btn" id="btn-prev" title="Previous (←)">
           <svg viewBox="0 0 24 24">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
         </button>
-        <button class="btn-icon ctrl-btn play-btn" id="btn-play" title="Play">
+        <button class="btn-icon ctrl-btn play-btn" id="btn-play" title="Play/Pause (Space)">
           <svg class="icon-play" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
@@ -216,12 +213,12 @@
             <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
           </svg>
         </button>
-        <button class="btn-icon ctrl-btn" id="btn-next" title="Next">
+        <button class="btn-icon ctrl-btn" id="btn-next" title="Next (→)">
           <svg viewBox="0 0 24 24">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
           </svg>
         </button>
-        <button class="btn-icon ctrl-btn" id="btn-repeat" title="Repeat">
+        <button class="btn-icon ctrl-btn" id="btn-repeat" title="Repeat (R)">
           <svg viewBox="0 0 24 24">
             <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" />
           </svg>
@@ -237,9 +234,8 @@
       </div>
     </div>
 
-    <!-- VOLUME -->
     <div class="player-volume">
-      <button class="btn-icon ctrl-btn" id="btn-mute" title="Mute">
+      <button class="btn-icon ctrl-btn" id="btn-mute" title="Mute (M)">
         <svg class="icon-vol-up" viewBox="0 0 24 24">
           <path
             d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
@@ -254,12 +250,11 @@
         <div class="volume-thumb" id="volume-thumb"></div>
       </div>
     </div>
-
   </footer>
 
   <!-- MODALS -->
   <div class="modal-backdrop" id="modal-backdrop">
-    <!-- New Playlist Modal -->
+
     <div class="modal" id="modal-new-playlist">
       <div class="modal-header">
         <h2>Create Playlist</h2>
@@ -277,7 +272,6 @@
       </div>
     </div>
 
-    <!-- Add to Playlist Modal -->
     <div class="modal" id="modal-add-to-playlist">
       <div class="modal-header">
         <h2>Add to Playlist</h2>
@@ -293,10 +287,29 @@
         <button class="btn-secondary" data-modal="modal-add-to-playlist">Cancel</button>
       </div>
     </div>
+
+    <!-- Upload Result Modal: shows the JSON snippet to copy into songs.json -->
+    <div class="modal" id="modal-upload-result">
+      <div class="modal-header">
+        <h2>✅ Upload Complete!</h2>
+        <button class="btn-icon modal-close" data-modal="modal-upload-result">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+      <p class="modal-hint">Copy this line and paste it into your <strong>songs.json</strong> on GitHub:</p>
+      <textarea class="modal-input mono" id="upload-result-json" rows="4" readonly></textarea>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-copy-json">📋 Copy JSON</button>
+        <button class="btn-secondary" data-modal="modal-upload-result">Close</button>
+      </div>
+    </div>
+
   </div>
 
-  <audio id="audio-player" preload="metadata"></audio>
-
+  <audio id="audio-player" preload="metadata" crossorigin="anonymous"></audio>
   <script src="app.js"></script>
 </body>
 
