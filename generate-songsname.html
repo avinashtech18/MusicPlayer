@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wavvve — songs.json Generator</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #07080f;
+            --surface: #0f1020;
+            --card: #151728;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #00e5ff;
+            --accent2: #7c6af7;
+            --accent-g: rgba(0, 229, 255, 0.15);
+            --text: #e8f0ff;
+            --muted: #6070a0;
+            --success: #00e5a0;
+            --error: #ff5572;
+            --font-d: 'Syne', sans-serif;
+            --font-b: 'DM Sans', sans-serif;
+            --font-m: 'DM Mono', monospace;
+        }
+
+        html,
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-b);
+            font-size: 14px;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* HEADER */
+        .header {
+            margin-bottom: 48px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--accent2);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-d);
+            font-weight: 800;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(124, 106, 247, 0.4);
+        }
+
+        .logo-text {
+            font-family: var(--font-d);
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        h1 {
+            font-family: var(--font-d);
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 15px;
+            max-width: 520px;
+            line-height: 1.6;
+        }
+
+        /* STEPS */
+        .steps {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.5s 0.1s ease both;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 7px 14px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .step-num {
+            width: 18px;
+            height: 18px;
+            background: var(--accent2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        /* CARD */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.5s 0.2s ease both;
+        }
+
+        .card-title {
+            font-family: var(--font-d);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* FORM GRID */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input,
+        select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-family: var(--font-b);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
+        }
+
+        input::placeholder {
+            color: var(--muted);
+        }
+
+        select option {
+            background: var(--card);
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* BUTTONS */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            border-radius: 99px;
+            border: none;
+            font-family: var(--font-b);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.25);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 28px rgba(0, 229, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.2);
+        }
+
+        /* STATUS */
+        .status-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-top: 16px;
+            border: 1px solid;
+        }
+
+        .status-bar.show {
+            display: flex;
+        }
+
+        .status-bar.loading {
+            background: rgba(0, 229, 255, 0.06);
+            border-color: rgba(0, 229, 255, 0.2);
+            color: var(--accent);
+        }
+
+        .status-bar.success {
+            background: rgba(0, 229, 160, 0.06);
+            border-color: rgba(0, 229, 160, 0.2);
+            color: var(--success);
+        }
+
+        .status-bar.error {
+            background: rgba(255, 85, 114, 0.06);
+            border-color: rgba(255, 85, 114, 0.2);
+            color: var(--error);
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 229, 255, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* SONG TABLE */
+        .song-table-wrap {
+            display: none;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .song-table-wrap.show {
+            display: block;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-title {
+            font-family: var(--font-d);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .badge {
+            background: var(--accent-g);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            color: var(--accent);
+            border-radius: 99px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 20px;
+        }
+
+        .song-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .song-list::-webkit-scrollbar-thumb {
+            background: var(--muted);
+            border-radius: 2px;
+        }
+
+        .song-row {
+            display: grid;
+            grid-template-columns: 28px 1fr 1fr 80px;
+            gap: 8px;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: border-color 0.15s;
+        }
+
+        .song-row:hover {
+            border-color: rgba(0, 229, 255, 0.2);
+        }
+
+        .song-row .num {
+            color: var(--muted);
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+        }
+
+        .song-row input {
+            padding: 6px 10px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        .song-row .remove-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .song-row .remove-btn:hover {
+            color: var(--error);
+            background: rgba(255, 85, 114, 0.1);
+        }
+
+        .song-row .remove-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* JSON OUTPUT */
+        .json-wrap {
+            display: none;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .json-wrap.show {
+            display: block;
+        }
+
+        .json-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: var(--font-m);
+            font-size: 12px;
+            color: #a0c0ff;
+            white-space: pre;
+            overflow-x: auto;
+            max-height: 320px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+
+        .json-box::-webkit-scrollbar {
+            width: 3px;
+            height: 3px;
+        }
+
+        .json-box::-webkit-scrollbar-thumb {
+            background: var(--muted);
+            border-radius: 2px;
+        }
+
+        /* COPY TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--success);
+            color: #000;
+            border-radius: 99px;
+            padding: 10px 24px;
+            font-weight: 700;
+            font-size: 13px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* COL HEADERS */
+        .col-headers {
+            display: grid;
+            grid-template-columns: 28px 1fr 1fr 80px;
+            gap: 8px;
+            padding: 0 12px 6px;
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 580px) {
+            .song-row {
+                grid-template-columns: 24px 1fr 60px;
+            }
+
+            .song-row .artist-input {
+                display: none;
+            }
+
+            .col-headers {
+                grid-template-columns: 24px 1fr 60px;
+            }
+
+            .col-headers .col-artist {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-mark">W</div>
+                <span class="logo-text">Wavvve</span>
+            </div>
+            <h1>songs.json<br><span>Generator</span></h1>
+            <p class="subtitle">Fetch all your Cloudinary audio files and generate a clean <code>songs.json</code> with
+                proper song names — no more random IDs.</p>
+        </header>
+
+        <!-- STEPS -->
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div> Enter Cloudinary credentials
+            </div>
+            <div class="step">
+                <div class="step-num">2</div> Fetch your songs
+            </div>
+            <div class="step">
+                <div class="step-num">3</div> Edit titles & artists
+            </div>
+            <div class="step">
+                <div class="step-num">4</div> Download songs.json
+            </div>
+        </div>
+
+        <!-- CREDENTIALS CARD -->
+        <div class="card">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                </svg>
+                Cloudinary Credentials
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Cloud Name</label>
+                    <input type="text" id="cloud-name" placeholder="e.g. dntiwkfmp" value="dntiwkfmp" />
+                    <span class="hint">Found in your Cloudinary dashboard URL</span>
+                </div>
+                <div class="field">
+                    <label>API Key</label>
+                    <input type="text" id="api-key" placeholder="e.g. 123456789012345" />
+                    <span class="hint">Settings → Access Keys</span>
+                </div>
+                <div class="field">
+                    <label>API Secret</label>
+                    <input type="password" id="api-secret" placeholder="Your API secret" />
+                    <span class="hint">Settings → Access Keys (keep private!)</span>
+                </div>
+                <div class="field">
+                    <label>Folder (optional)</label>
+                    <input type="text" id="folder" placeholder="e.g. TamilSongs or leave empty" />
+                    <span class="hint">If songs are inside a specific folder</span>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" id="fetch-btn" onclick="fetchSongs()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                    </svg>
+                    Fetch Songs from Cloudinary
+                </button>
+                <button class="btn btn-secondary" onclick="loadDemo()">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+                    </svg>
+                    Load Demo Data
+                </button>
+            </div>
+
+            <div class="status-bar" id="status-bar">
+                <div class="spinner" id="spinner"></div>
+                <span id="status-text">Fetching songs...</span>
+            </div>
+        </div>
+
+        <!-- SONG TABLE -->
+        <div class="song-table-wrap card" id="song-table-wrap">
+            <div class="table-header">
+                <div>
+                    <div class="card-title" style="margin-bottom:4px">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                        </svg>
+                        Edit Song Details
+                    </div>
+                    <span class="badge" id="song-count">0 songs</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="btn btn-secondary" onclick="autoNameAll()" style="font-size:12px;padding:8px 14px">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                        </svg>
+                        Auto-clean Names
+                    </button>
+                    <button class="btn btn-secondary" onclick="addRow()" style="font-size:12px;padding:8px 14px">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                        Add Row
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-headers">
+                <div>#</div>
+                <div>Song Title</div>
+                <div class="col-artist">Artist</div>
+                <div></div>
+            </div>
+
+            <div class="song-list" id="song-list"></div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="generateJSON()">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                    </svg>
+                    Generate songs.json
+                </button>
+            </div>
+        </div>
+
+        <!-- JSON OUTPUT -->
+        <div class="json-wrap card" id="json-wrap">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                </svg>
+                Generated songs.json
+            </div>
+            <pre class="json-box" id="json-output"></pre>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="downloadJSON()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                    </svg>
+                    Download songs.json
+                </button>
+                <button class="btn btn-secondary" onclick="copyJSON()">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
+                    Copy to Clipboard
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast">✓ Copied to clipboard!</div>
+
+    <script>
+        let songsData = [];
+
+        /* ── STATUS HELPERS ── */
+        function setStatus(type, msg) {
+            const bar = document.getElementById('status-bar');
+            const txt = document.getElementById('status-text');
+            const sp = document.getElementById('spinner');
+            bar.className = 'status-bar show ' + type;
+            txt.textContent = msg;
+            sp.style.display = type === 'loading' ? 'block' : 'none';
+        }
+
+        function hideStatus() {
+            document.getElementById('status-bar').className = 'status-bar';
+        }
+
+        /* ── CLEAN FILENAME to readable title ── */
+        function cleanName(publicId) {
+            // Extract just the filename (after last /)
+            const base = publicId.split('/').pop();
+            // Remove extension
+            const noExt = base.replace(/\.[^.]+$/, '');
+            // Replace separators with spaces
+            return noExt
+                .replace(/[_\-\.]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        /* ── FETCH FROM CLOUDINARY ── */
+        async function fetchSongs() {
+            const cloudName = document.getElementById('cloud-name').value.trim();
+            const apiKey = document.getElementById('api-key').value.trim();
+            const apiSecret = document.getElementById('api-secret').value.trim();
+            const folder = document.getElementById('folder').value.trim();
+
+            if (!cloudName || !apiKey || !apiSecret) {
+                setStatus('error', '❌ Please fill in Cloud Name, API Key and API Secret.');
+                return;
+            }
+
+            setStatus('loading', 'Connecting to Cloudinary...');
+            document.getElementById('fetch-btn').disabled = true;
+
+            try {
+                // Cloudinary Admin API - list resources
+                let url = `https://api.cloudinary.com/v1_1/${cloudName}/resources/video?resource_type=video&max_results=500&type=upload`;
+                if (folder) url += `&prefix=${encodeURIComponent(folder)}`;
+
+                const credentials = btoa(`${apiKey}:${apiSecret}`);
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Basic ${credentials}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error?.message || `HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+                const resources = data.resources || [];
+
+                if (!resources.length) {
+                    setStatus('error', '❌ No audio files found. Check your folder name or upload some MP3s first.');
+                    document.getElementById('fetch-btn').disabled = false;
+                    return;
+                }
+
+                // Build songs array
+                songsData = resources.map(r => ({
+                    title: cleanName(r.public_id),
+                    artist: 'Unknown',
+                    url: r.secure_url,
+                    publicId: r.public_id
+                }));
+
+                setStatus('success', `✅ Found ${songsData.length} songs! Edit titles and artists below.`);
+                renderTable();
+
+            } catch (e) {
+                setStatus('error', `❌ Error: ${e.message}. Check your credentials or use CORS proxy if needed.`);
+                console.error(e);
+            }
+
+            document.getElementById('fetch-btn').disabled = false;
+        }
+
+        /* ── RENDER TABLE ── */
+        function renderTable() {
+            const list = document.getElementById('song-list');
+            list.innerHTML = '';
+
+            songsData.forEach((song, i) => {
+                const row = document.createElement('div');
+                row.className = 'song-row';
+                row.dataset.idx = i;
+                row.innerHTML = `
+        <div class="num">${i + 1}</div>
+        <input type="text" class="title-inp" placeholder="Song title" value="${escHtml(song.title)}" oninput="updateSong(${i}, 'title', this.value)" />
+        <input type="text" class="artist-input" placeholder="Artist name" value="${escHtml(song.artist)}" oninput="updateSong(${i}, 'artist', this.value)" />
+        <button class="remove-btn" onclick="removeSong(${i})" title="Remove">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>`;
+                list.appendChild(row);
+            });
+
+            document.getElementById('song-count').textContent = `${songsData.length} songs`;
+            document.getElementById('song-table-wrap').classList.add('show');
+            document.getElementById('json-wrap').classList.remove('show');
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function updateSong(i, field, val) {
+            songsData[i][field] = val;
+        }
+
+        function removeSong(i) {
+            songsData.splice(i, 1);
+            renderTable();
+        }
+
+        function addRow() {
+            songsData.push({ title: '', artist: '', url: '' });
+            renderTable();
+            // Focus last title input
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.title-inp');
+                if (inputs.length) inputs[inputs.length - 1].focus();
+            }, 50);
+        }
+
+        /* ── AUTO CLEAN ALL NAMES ── */
+        function autoNameAll() {
+            songsData = songsData.map(s => ({
+                ...s,
+                title: s.publicId ? cleanName(s.publicId) : s.title
+            }));
+            renderTable();
+            showToast('✓ Names cleaned!');
+        }
+
+        /* ── GENERATE JSON ── */
+        function generateJSON() {
+            // Read latest values from inputs
+            document.querySelectorAll('.song-row').forEach((row, i) => {
+                const idx = parseInt(row.dataset.idx);
+                const titleEl = row.querySelector('.title-inp');
+                const artistEl = row.querySelector('.artist-input');
+                if (titleEl) songsData[idx].title = titleEl.value;
+                if (artistEl) songsData[idx].artist = artistEl.value;
+            });
+
+            const output = songsData
+                .filter(s => s.url)
+                .map(s => ({ title: s.title || 'Unknown', artist: s.artist || 'Unknown', url: s.url }));
+
+            const json = JSON.stringify(output, null, 2);
+            document.getElementById('json-output').textContent = json;
+            document.getElementById('json-wrap').classList.add('show');
+
+            // Scroll to JSON
+            setTimeout(() => {
+                document.getElementById('json-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        /* ── DOWNLOAD ── */
+        function downloadJSON() {
+            const json = document.getElementById('json-output').textContent;
+            if (!json) return;
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'songs.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('✓ Downloaded songs.json!');
+        }
+
+        /* ── COPY ── */
+        function copyJSON() {
+            const json = document.getElementById('json-output').textContent;
+            if (!json) return;
+            navigator.clipboard.writeText(json).then(() => showToast('✓ Copied to clipboard!'));
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        /* ── DEMO DATA ── */
+        function loadDemo() {
+            songsData = [
+                { title: 'Kannazhaga', artist: 'D. Imman', url: 'https://res.cloudinary.com/dntiwkfmp/video/upload/v1/kannazhaga.mp3', publicId: 'kannazhaga' },
+                { title: 'Rowdy Baby', artist: 'Yuvan Shankar Raja', url: 'https://res.cloudinary.com/dntiwkfmp/video/upload/v1/rowdy_baby.mp3', publicId: 'rowdy_baby' },
+                { title: 'Enjoy Enjaami', artist: 'Dhee ft. Arivu', url: 'https://res.cloudinary.com/dntiwkfmp/video/upload/v1/enjoy_enjaami.mp3', publicId: 'enjoy_enjaami' },
+                { title: 'Surviva', artist: 'Anirudh Ravichander', url: 'https://res.cloudinary.com/dntiwkfmp/video/upload/v1/surviva.mp3', publicId: 'surviva' },
+                { title: 'Vaathi Coming', artist: 'Anirudh Ravichander', url: 'https://res.cloudinary.com/dntiwkfmp/video/upload/v1/vaathi_coming.mp3', publicId: 'vaathi_coming' },
+            ];
+            setStatus('success', '✅ Demo data loaded! Edit titles and artists, then generate JSON.');
+            renderTable();
+        }
+
+        /* ── PREFILL CLOUD NAME ── */
+        window.addEventListener('DOMContentLoaded', () => {
+            // Already prefilled with dntiwkfmp from screenshot
+        });
+    </script>
+
+</body>
+
+</html>
