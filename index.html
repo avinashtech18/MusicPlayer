@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wavvve — Music Player</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">W</span>
+      <span class="logo-text">Wavvve</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="home">
+        <svg viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+        Home
+      </button>
+      <button class="nav-item" data-view="library">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" />
+        </svg>
+        Library
+      </button>
+      <button class="nav-item" data-view="playlists">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" />
+        </svg>
+        Playlists
+      </button>
+    </nav>
+
+    <div class="sidebar-section" id="playlist-section">
+      <div class="sidebar-section-header">
+        <span>My Playlists</span>
+        <button class="btn-icon" id="new-playlist-btn" title="New Playlist">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+        </button>
+      </div>
+      <ul class="playlist-list" id="playlist-list"></ul>
+    </div>
+
+    <button class="sidebar-close" id="sidebar-close">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+      </svg>
+    </button>
+  </aside>
+
+  <!-- OVERLAY -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+        </svg>
+      </button>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <path
+            d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Search songs, artists…"
+          autocomplete="off" />
+        <button class="search-clear" id="search-clear" aria-label="Clear search">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- VIEWS -->
+    <div class="view-container">
+
+      <!-- HOME VIEW -->
+      <section class="view active" id="view-home">
+        <div class="view-header">
+          <h1 class="view-title">Good <span id="greeting-time">evening</span></h1>
+          <p class="view-subtitle">Pick up where you left off</p>
+        </div>
+        <div class="song-list-header">
+          <div class="col-num">#</div>
+          <div class="col-title">Title</div>
+          <div class="col-artist">Artist</div>
+          <div class="col-actions"></div>
+        </div>
+        <ul class="song-list" id="song-list-home" role="list"></ul>
+      </section>
+
+      <!-- LIBRARY VIEW -->
+      <section class="view" id="view-library">
+        <div class="view-header">
+          <h1 class="view-title">Your Library</h1>
+          <p class="view-subtitle">All your songs in one place</p>
+        </div>
+        <div class="song-list-header">
+          <div class="col-num">#</div>
+          <div class="col-title">Title</div>
+          <div class="col-artist">Artist</div>
+          <div class="col-actions"></div>
+        </div>
+        <ul class="song-list" id="song-list-library" role="list"></ul>
+      </section>
+
+      <!-- PLAYLISTS VIEW -->
+      <section class="view" id="view-playlists">
+        <div class="view-header">
+          <h1 class="view-title">Playlists</h1>
+          <p class="view-subtitle">Your curated collections</p>
+        </div>
+        <div class="playlist-grid" id="playlist-grid"></div>
+        <div class="playlist-detail" id="playlist-detail" style="display:none">
+          <button class="btn-back" id="playlist-back">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+            </svg>
+            Back to Playlists
+          </button>
+          <div class="view-header">
+            <h1 class="view-title" id="playlist-detail-title"></h1>
+            <p class="view-subtitle" id="playlist-detail-count"></p>
+          </div>
+          <div class="song-list-header">
+            <div class="col-num">#</div>
+            <div class="col-title">Title</div>
+            <div class="col-artist">Artist</div>
+            <div class="col-actions"></div>
+          </div>
+          <ul class="song-list" id="song-list-playlist" role="list"></ul>
+        </div>
+      </section>
+
+      <!-- SEARCH RESULTS VIEW -->
+      <section class="view" id="view-search">
+        <div class="view-header">
+          <h1 class="view-title">Search Results</h1>
+          <p class="view-subtitle" id="search-result-info"></p>
+        </div>
+        <div class="song-list-header">
+          <div class="col-num">#</div>
+          <div class="col-title">Title</div>
+          <div class="col-artist">Artist</div>
+          <div class="col-actions"></div>
+        </div>
+        <ul class="song-list" id="song-list-search" role="list"></ul>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- PLAYER BAR -->
+  <footer class="player-bar" id="player-bar">
+
+    <!-- SONG INFO -->
+    <div class="player-info">
+      <div class="player-art" id="player-art">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+        </svg>
+      </div>
+      <div class="player-meta">
+        <div class="player-title" id="player-title">Nothing playing</div>
+        <div class="player-artist" id="player-artist">—</div>
+      </div>
+      <button class="btn-icon player-heart" id="player-heart" title="Like">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="player-controls">
+      <div class="control-buttons">
+        <button class="btn-icon ctrl-btn" id="btn-shuffle" title="Shuffle">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
+          </svg>
+        </button>
+        <button class="btn-icon ctrl-btn" id="btn-prev" title="Previous">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+          </svg>
+        </button>
+        <button class="btn-icon ctrl-btn play-btn" id="btn-play" title="Play">
+          <svg class="icon-play" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" style="display:none">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+        </button>
+        <button class="btn-icon ctrl-btn" id="btn-next" title="Next">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+          </svg>
+        </button>
+        <button class="btn-icon ctrl-btn" id="btn-repeat" title="Repeat">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" />
+          </svg>
+        </button>
+      </div>
+      <div class="progress-row">
+        <span class="time-label" id="time-current">0:00</span>
+        <div class="progress-track" id="progress-track" role="slider" aria-label="Seek">
+          <div class="progress-fill" id="progress-fill"></div>
+          <div class="progress-thumb" id="progress-thumb"></div>
+        </div>
+        <span class="time-label" id="time-duration">0:00</span>
+      </div>
+    </div>
+
+    <!-- VOLUME -->
+    <div class="player-volume">
+      <button class="btn-icon ctrl-btn" id="btn-mute" title="Mute">
+        <svg class="icon-vol-up" viewBox="0 0 24 24">
+          <path
+            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+        </svg>
+        <svg class="icon-vol-mute" viewBox="0 0 24 24" style="display:none">
+          <path
+            d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+        </svg>
+      </button>
+      <div class="volume-track" id="volume-track" role="slider" aria-label="Volume">
+        <div class="volume-fill" id="volume-fill"></div>
+        <div class="volume-thumb" id="volume-thumb"></div>
+      </div>
+    </div>
+
+  </footer>
+
+  <!-- MODALS -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <!-- New Playlist Modal -->
+    <div class="modal" id="modal-new-playlist">
+      <div class="modal-header">
+        <h2>Create Playlist</h2>
+        <button class="btn-icon modal-close" data-modal="modal-new-playlist">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+      <input type="text" class="modal-input" id="playlist-name-input" placeholder="Playlist name…" maxlength="40" />
+      <div class="modal-actions">
+        <button class="btn-secondary" data-modal="modal-new-playlist">Cancel</button>
+        <button class="btn-primary" id="confirm-new-playlist">Create</button>
+      </div>
+    </div>
+
+    <!-- Add to Playlist Modal -->
+    <div class="modal" id="modal-add-to-playlist">
+      <div class="modal-header">
+        <h2>Add to Playlist</h2>
+        <button class="btn-icon modal-close" data-modal="modal-add-to-playlist">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+      <ul class="modal-playlist-list" id="modal-playlist-list"></ul>
+      <div class="modal-actions">
+        <button class="btn-secondary" data-modal="modal-add-to-playlist">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-player" preload="metadata"></audio>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
