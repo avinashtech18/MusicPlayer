@@ -19,7 +19,6 @@
       <span class="logo-mark">W</span>
       <span class="logo-text">Wavvve</span>
     </div>
-
     <nav class="sidebar-nav">
       <button class="nav-item active" data-view="home">
         <svg viewBox="0 0 24 24">
@@ -42,7 +41,6 @@
         Playlists
       </button>
     </nav>
-
     <div class="sidebar-section" id="playlist-section">
       <div class="sidebar-section-header">
         <span>My Playlists</span>
@@ -54,7 +52,6 @@
       </div>
       <ul class="playlist-list" id="playlist-list"></ul>
     </div>
-
     <button class="sidebar-close" id="sidebar-close">
       <svg viewBox="0 0 24 24">
         <path
@@ -65,7 +62,7 @@
 
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <main class="main-content">
+  <main class="main-content" id="main-content">
     <header class="topbar">
       <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
         <svg viewBox="0 0 24 24">
@@ -90,7 +87,6 @@
     </header>
 
     <div class="view-container">
-
       <section class="view active" id="view-home">
         <div class="view-header">
           <h1 class="view-title">Good <span id="greeting-time">evening</span></h1>
@@ -159,16 +155,16 @@
         </div>
         <ul class="song-list" id="song-list-search" role="list"></ul>
       </section>
-
     </div>
   </main>
 
   <footer class="player-bar" id="player-bar">
 
     <div class="player-info">
-      <!-- VISUALIZER: CSS bars, no CORS issues -->
       <div class="player-art" id="player-art">
-        <div id="viz-bars" class="viz-bars"></div>
+        <svg class="art-icon" viewBox="0 0 24 24">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+        </svg>
       </div>
       <div class="player-meta">
         <div class="player-title" id="player-title">Nothing playing</div>
@@ -183,6 +179,7 @@
       </button>
     </div>
 
+    <!-- CONTROLS with VISUALIZER BEHIND PLAY BUTTON -->
     <div class="player-controls">
       <div class="control-buttons">
         <button class="btn-icon ctrl-btn" id="btn-shuffle" title="Shuffle (S)">
@@ -196,14 +193,20 @@
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
         </button>
-        <button class="btn-icon ctrl-btn play-btn" id="btn-play" title="Play/Pause (Space)">
-          <svg class="icon-play" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-          <svg class="icon-pause" viewBox="0 0 24 24" style="display:none">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-          </svg>
-        </button>
+
+        <!-- PLAY BUTTON WRAPPED WITH VISUALIZER -->
+        <div class="play-btn-wrap">
+          <div id="viz-bars" class="viz-bars"></div>
+          <button class="btn-icon ctrl-btn play-btn" id="btn-play" title="Play/Pause (Space)">
+            <svg class="icon-play" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" style="display:none">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+          </button>
+        </div>
+
         <button class="btn-icon ctrl-btn" id="btn-next" title="Next (→)">
           <svg viewBox="0 0 24 24">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
@@ -261,7 +264,6 @@
         <button class="btn-primary" id="confirm-new-playlist">Create</button>
       </div>
     </div>
-
     <div class="modal" id="modal-add-to-playlist">
       <div class="modal-header">
         <h2>Add to Playlist</h2>

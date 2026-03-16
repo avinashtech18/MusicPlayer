@@ -516,11 +516,13 @@ const UI = (() => {
   function closeSidebar() {
     el.sidebar.classList.remove('open');
     el.sidebarOverlay.classList.remove('visible');
+    document.body.classList.remove('sidebar-open');
   }
 
   function openSidebar() {
     el.sidebar.classList.add('open');
     el.sidebarOverlay.classList.add('visible');
+    document.body.classList.add('sidebar-open');
   }
 
   return {
