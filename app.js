@@ -294,6 +294,7 @@ const MiniBar = (() => {
     const song = State.currentSong();
     const playing = State.isPlaying;
 
+    // ── Mobile mini bar ──
     const mob = document.getElementById('mobile-now-playing');
     if (mob) {
       mob.classList.toggle('visible', !!song);
@@ -307,6 +308,7 @@ const MiniBar = (() => {
       }
     }
 
+    // ── Desktop now playing bar ──
     const npb = document.getElementById('now-playing-bar');
     if (npb) {
       npb.classList.toggle('visible', !!song);
@@ -315,12 +317,42 @@ const MiniBar = (() => {
           `♪  Now Playing: ${song.title}${song.artist && song.artist !== 'Unknown' ? '  •  ' + song.artist : ''}`;
       }
     }
+
+    // ── Sidebar mini player ──
+    const spTitle = document.getElementById('sp-title');
+    const spArtist = document.getElementById('sp-artist');
+    const spArt = document.getElementById('sp-art');
+    const spIp = document.querySelector('#sp-play .icon-play');
+    const spPp = document.querySelector('#sp-play .icon-pause');
+
+    if (spTitle) spTitle.textContent = song ? song.title : 'Nothing playing';
+    if (spArtist) spArtist.textContent = song ? (song.artist || '—') : '—';
+    if (spArt) spArt.classList.toggle('playing', !!song && playing);
+    if (spIp) spIp.style.display = playing ? 'none' : 'block';
+    if (spPp) spPp.style.display = playing ? 'block' : 'none';
+
+    // Sidebar shuffle/repeat active state
+    const spShuffle = document.getElementById('sp-shuffle');
+    const spRepeat = document.getElementById('sp-repeat');
+    if (spShuffle) spShuffle.classList.toggle('active', State.isShuffle);
+    if (spRepeat) spRepeat.classList.toggle('active', State.isRepeat);
   }
 
   function updateProgress(current, duration) {
     const pct = duration ? (current / duration) * 100 : 0;
+    // Mobile
     const fill = document.getElementById('mnp-progress-fill');
     if (fill) fill.style.width = pct + '%';
+    // Sidebar
+    const spFill = document.getElementById('sp-progress-fill');
+    const spThumb = document.getElementById('sp-thumb');
+    if (spFill) spFill.style.width = pct + '%';
+    if (spThumb) spThumb.style.left = pct + '%';
+    // Sidebar times
+    const spCur = document.getElementById('sp-current');
+    const spDur = document.getElementById('sp-duration');
+    if (spCur) spCur.textContent = UI.fmtTime(current);
+    if (spDur) spDur.textContent = UI.fmtTime(duration);
   }
 
   return { update, updateProgress };
@@ -852,6 +884,19 @@ async function init() {
   document.getElementById('mnp-play').addEventListener('click', Player.togglePlay);
   document.getElementById('mnp-next').addEventListener('click', Player.playNext);
   document.getElementById('mnp-prev').addEventListener('click', Player.playPrev);
+
+  // ── SIDEBAR MINI PLAYER ──
+  document.getElementById('sp-play').addEventListener('click', Player.togglePlay);
+  document.getElementById('sp-next').addEventListener('click', Player.playNext);
+  document.getElementById('sp-prev').addEventListener('click', Player.playPrev);
+  document.getElementById('sp-shuffle').addEventListener('click', Player.toggleShuffle);
+  document.getElementById('sp-repeat').addEventListener('click', Player.toggleRepeat);
+
+  // Sidebar progress slider
+  makeSlider(document.getElementById('sp-progress'), pct => {
+    AudioEngine.seek(pct);
+    UI.updateProgress(AudioEngine.currentTime, AudioEngine.duration);
+  });
 
   // ── KEYBOARD ──
   document.addEventListener('keydown', e => {

@@ -47,33 +47,48 @@ body {
   overflow: hidden;
 }
 
+/* ── DESKTOP: sidebar always visible ── */
 body {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: 1fr var(--npb-h) var(--player-h);
-  grid-template-areas: "main" "npb" "player";
+  grid-template-areas:
+    "sidebar main"
+    "sidebar npb"
+    "sidebar player";
 }
 
 /* ===========================
-   SIDEBAR
+   SIDEBAR — always visible on desktop
    =========================== */
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: -270px;
-  bottom: calc(var(--player-h) + var(--npb-h) + 1px);
-  width: var(--sidebar-w);
+  grid-area: sidebar;
   background: var(--bg-surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 300;
-  transition: transform 0.3s ease;
+  z-index: 100;
+  /* No fixed/absolute on desktop */
+  position: relative;
+  left: auto;
+  bottom: auto;
+  transition: none;
 }
 
-.sidebar.open {
-  transform: translateX(270px);
+/* Hide close button on desktop */
+.sidebar-close {
+  display: none;
+}
+
+/* Hide menu button on desktop */
+.mobile-menu-btn {
+  display: none;
+}
+
+/* No overlay needed on desktop */
+.sidebar-overlay {
+  display: none !important;
 }
 
 .main-content {
@@ -81,55 +96,201 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: margin-left 0.3s ease;
+  margin-left: 0 !important;
+  transition: none;
 }
 
-body.sidebar-open .main-content {
-  margin-left: var(--sidebar-w);
+/* ── SIDEBAR MINI PLAYER ── */
+.sidebar-player {
+  flex-shrink: 0;
+  padding: 12px 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
 }
 
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 291;
+.sidebar-player-song {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-width: 0;
 }
 
-.sidebar-overlay.visible {
+.sp-art {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.sp-art svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--text-3);
+}
+
+.sp-art.playing {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 10px rgba(255, 45, 120, 0.3);
+  animation: artSpin 3s linear infinite;
+}
+
+.sp-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.sp-title {
+  font-family: var(--font-head);
+  font-size: 12px;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-artist {
+  font-size: 11px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.sidebar-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.sp-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+}
+
+.sp-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
   display: block;
 }
 
-.sidebar-close {
-  display: flex;
+.sp-btn:hover {
+  color: var(--text-1);
+  background: var(--bg-hover);
+}
+
+.sp-btn.active {
+  color: var(--neon-pink);
+}
+
+.sp-play-btn {
+  width: 36px !important;
+  height: 36px !important;
+  background: var(--grad-main) !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.35) !important;
+  margin: 0 4px;
+}
+
+.sp-play-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.sp-play-btn:hover {
+  transform: scale(1.1) !important;
+}
+
+/* Sidebar progress bar */
+.sp-progress {
+  height: 3px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+}
+
+.sp-progress:hover {
+  height: 5px;
+}
+
+.sp-progress:hover .sp-thumb {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.sp-progress-fill {
+  height: 100%;
+  background: var(--grad-main);
+  border-radius: 2px;
+  transition: width 0.25s linear;
+  pointer-events: none;
+}
+
+.sp-thumb {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  color: var(--text-2);
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  margin-left: -5px;
+  opacity: 0;
+  transition: all 0.18s;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
-.mobile-menu-btn {
+.sp-times {
   display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
 }
 
+/* ── SIDEBAR INNER ── */
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 26px 20px 22px;
+  padding: 22px 20px 18px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .logo-mark {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   background: var(--grad-main);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-head);
-  font-size: 22px;
+  font-size: 20px;
   color: #fff;
   box-shadow: 0 4px 18px var(--accent-glow);
   flex-shrink: 0;
@@ -137,7 +298,7 @@ body.sidebar-open .main-content {
 
 .logo-text {
   font-family: var(--font-head);
-  font-size: 24px;
+  font-size: 22px;
   background: var(--grad-main);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -145,23 +306,24 @@ body.sidebar-open .main-content {
 }
 
 .sidebar-nav {
-  padding: 14px 10px 8px;
+  padding: 12px 10px 6px;
   display: flex;
   flex-direction: column;
   gap: 3px;
+  flex-shrink: 0;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 9px 14px;
   border-radius: 10px;
   border: none;
   background: transparent;
   color: var(--text-2);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.18s;
@@ -170,8 +332,8 @@ body.sidebar-open .main-content {
 }
 
 .nav-item svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: currentColor;
   flex-shrink: 0;
 }
@@ -191,9 +353,10 @@ body.sidebar-open .main-content {
 .sidebar-section {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-top: 1px solid var(--border);
-  margin-top: 6px;
+  margin-top: 4px;
+  min-height: 0;
 }
 
 .sidebar-section::-webkit-scrollbar {
@@ -209,7 +372,7 @@ body.sidebar-open .main-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 4px 10px;
+  padding: 6px 4px 8px;
   color: var(--text-3);
   font-size: 10px;
   text-transform: uppercase;
@@ -222,10 +385,10 @@ body.sidebar-open .main-content {
 }
 
 .playlist-list li {
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-radius: 8px;
   color: var(--text-2);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s;
@@ -997,7 +1160,6 @@ body.sidebar-open .main-content {
   color: var(--neon-pink);
 }
 
-/* Visualizer + play button */
 .play-btn-wrap {
   position: relative;
   display: flex;
@@ -1187,7 +1349,6 @@ body.sidebar-open .main-content {
    =========================== */
 .mobile-now-playing {
   display: none;
-  /* hidden by default, shown on mobile when song plays */
   position: fixed;
   bottom: calc(var(--player-h) + var(--npb-h));
   left: 0;
@@ -1469,7 +1630,6 @@ body.sidebar-open .main-content {
   color: var(--neon-pink);
 }
 
-/* ── SLEEP TIMER ── */
 .timer-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1517,7 +1677,6 @@ body.sidebar-open .main-content {
   background-clip: text;
 }
 
-/* ── EQUALIZER ── */
 .eq-presets {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1609,7 +1768,7 @@ body.sidebar-open .main-content {
 }
 
 /* ===========================
-   RESPONSIVE
+   RESPONSIVE — MOBILE
    =========================== */
 @media (max-width: 900px) {
 
@@ -1628,8 +1787,50 @@ body.sidebar-open .main-content {
 }
 
 @media (max-width: 720px) {
-  body.sidebar-open .main-content {
-    margin-left: 0;
+
+  /* On mobile: sidebar becomes overlay again */
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr var(--npb-h) var(--player-h);
+    grid-template-areas: "main" "npb" "player";
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -270px;
+    bottom: calc(var(--player-h) + var(--npb-h) + 1px);
+    width: var(--sidebar-w);
+    z-index: 300;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(270px);
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 291;
+  }
+
+  .sidebar-overlay.visible {
+    display: block !important;
+  }
+
+  .sidebar-close {
+    display: flex;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: var(--text-2);
+  }
+
+  .mobile-menu-btn {
+    display: flex;
   }
 
   .topbar {
@@ -1644,14 +1845,8 @@ body.sidebar-open .main-content {
     font-size: 26px;
   }
 
-  /* Show mobile mini bar when visible */
   .mobile-now-playing.visible {
     display: flex;
-  }
-
-  /* Adjust bottom offset for mobile mini bar */
-  body {
-    grid-template-rows: 1fr var(--npb-h) var(--player-h);
   }
 
   .view {
@@ -1699,6 +1894,11 @@ body.sidebar-open .main-content {
 
   .timer-options {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Hide sidebar player on mobile */
+  .sidebar-player {
+    display: none;
   }
 }
 
