@@ -93,7 +93,7 @@ body.sidebar-open .main-content {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 290;
+  z-index: 291;
 }
 
 .sidebar-overlay.visible {
