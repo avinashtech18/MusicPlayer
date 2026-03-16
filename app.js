@@ -25,18 +25,9 @@ const State = (() => {
   let _openPlaylistId = null;
   let _eqPreset = localStorage.getItem('wavvve_eq') || 'normal';
 
-  const savePlaylists = () => {
-    localStorage.setItem('wavvve_playlists', JSON.stringify(_playlists));
-    window.saveProfileData?.('playlists', _playlists);
-  };
-  const saveLiked = () => {
-    localStorage.setItem('wavvve_liked', JSON.stringify([..._likedSongs]));
-    window.saveProfileData?.('likedSongs', [..._likedSongs]);
-  };
-  const saveHistory = () => {
-    localStorage.setItem('wavvve_search_history', JSON.stringify(_searchHistory));
-    window.saveProfileData?.('searchHistory', _searchHistory);
-  };
+  const savePlaylists = () => localStorage.setItem('wavvve_playlists', JSON.stringify(_playlists));
+  const saveLiked = () => localStorage.setItem('wavvve_liked', JSON.stringify([..._likedSongs]));
+  const saveHistory = () => localStorage.setItem('wavvve_search_history', JSON.stringify(_searchHistory));
   const saveEQ = () => localStorage.setItem('wavvve_eq', _eqPreset);
 
   return {
@@ -91,7 +82,6 @@ const State = (() => {
     currentSong() { return _currentIdx >= 0 ? _songs[_currentIdx] : null; },
     queuePosition() { return _queueIdx + 1; },
 
-    // Returns upcoming songs (after current in queue)
     upcomingQueue() {
       if (_queue.length === 0) return [];
       const next = [];
@@ -227,24 +217,19 @@ const EQ = (() => {
     cinema: [2, 0, -1, 0, 3],
   };
 
-  let _ctx = null, _filters = [], _source = null, _connected = false;
+  let _ctx = null, _filters = [], _connected = false;
 
   function setup(audioEl) {
     if (_connected) return;
     try {
       _ctx = new (window.AudioContext || window.webkitAudioContext)();
       const freqs = [60, 250, 1000, 4000, 14000];
-      _source = _ctx.createMediaElementSource(audioEl);
-      let prev = _source;
+      const source = _ctx.createMediaElementSource(audioEl);
+      let prev = source;
       freqs.forEach(freq => {
         const f = _ctx.createBiquadFilter();
-        f.type = 'peaking';
-        f.frequency.value = freq;
-        f.Q.value = 1;
-        f.gain.value = 0;
-        prev.connect(f);
-        prev = f;
-        _filters.push(f);
+        f.type = 'peaking'; f.frequency.value = freq; f.Q.value = 1; f.gain.value = 0;
+        prev.connect(f); prev = f; _filters.push(f);
       });
       prev.connect(_ctx.destination);
       _connected = true;
@@ -266,21 +251,15 @@ const EQ = (() => {
    SLEEP TIMER
    =========================== */
 const SleepTimer = (() => {
-  let _timerId = null;
-  let _endTime = null;
-  let _tickId = null;
+  let _timerId = null, _endTime = null, _tickId = null;
 
   function set(minutes) {
     clear();
     _endTime = Date.now() + minutes * 60000;
     _timerId = setTimeout(() => {
-      AudioEngine.pause();
-      State.setPlaying(false);
-      UI.updatePlayButton(false);
-      Visualizer.stop();
-      MiniBar.update();
-      clear();
-      showToast('😴 Sleep timer ended — music stopped');
+      AudioEngine.pause(); State.setPlaying(false);
+      UI.updatePlayButton(false); Visualizer.stop(); MiniBar.update();
+      clear(); showToast('😴 Sleep timer ended — music stopped');
     }, minutes * 60000);
 
     _tickId = setInterval(() => {
@@ -290,11 +269,9 @@ const SleepTimer = (() => {
       const s = Math.floor((rem % 60000) / 1000).toString().padStart(2, '0');
       const el = document.getElementById('timer-countdown');
       if (el) el.textContent = `${m}:${s}`;
-      const btn = document.getElementById('btn-sleep-timer');
-      if (btn) btn.setAttribute('title', `Sleep Timer: ${m}:${s}`);
     }, 1000);
 
-    document.getElementById('timer-active').style.display = 'block';
+    document.getElementById('timer-active').style.display = 'flex';
     showToast(`⏱ Sleep timer set for ${minutes} min`);
   }
 
@@ -304,22 +281,19 @@ const SleepTimer = (() => {
     _endTime = null;
     const el = document.getElementById('timer-active');
     if (el) el.style.display = 'none';
-    const btn = document.getElementById('btn-sleep-timer');
-    if (btn) btn.setAttribute('title', 'Sleep Timer');
   }
 
   return { set, clear };
 })();
 
 /* ===========================
-   MOBILE / DESKTOP MINI BAR
+   MINI BAR
    =========================== */
 const MiniBar = (() => {
   function update() {
     const song = State.currentSong();
     const playing = State.isPlaying;
 
-    // Mobile mini bar
     const mob = document.getElementById('mobile-now-playing');
     if (mob) {
       mob.classList.toggle('visible', !!song);
@@ -333,7 +307,6 @@ const MiniBar = (() => {
       }
     }
 
-    // Desktop now playing bar
     const npb = document.getElementById('now-playing-bar');
     if (npb) {
       npb.classList.toggle('visible', !!song);
@@ -354,15 +327,11 @@ const MiniBar = (() => {
 })();
 
 /* ===========================
-   TOAST NOTIFICATION
+   TOAST
    =========================== */
 function showToast(msg, duration = 2800) {
   let t = document.getElementById('wavvve-toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'wavvve-toast';
-    document.body.appendChild(t);
-  }
+  if (!t) { t = document.createElement('div'); t.id = 'wavvve-toast'; document.body.appendChild(t); }
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._timer);
@@ -448,9 +417,7 @@ const UI = (() => {
 
   function createSongItem(song, songIdx, displayNum) {
     const li = document.createElement('li');
-    li.className = 'song-item';
-    li.dataset.idx = songIdx;
-    li.setAttribute('role', 'listitem');
+    li.className = 'song-item'; li.dataset.idx = songIdx; li.setAttribute('role', 'listitem');
     li.innerHTML = `
       <div class="song-num">
         <span class="num-text">${displayNum}</span>
@@ -475,9 +442,7 @@ const UI = (() => {
     } else {
       songs.forEach((song, i) => frag.appendChild(createSongItem(song, indexMap[i], i + 1)));
     }
-    ulEl.innerHTML = '';
-    ulEl.appendChild(frag);
-    highlightPlaying(ulEl);
+    ulEl.innerHTML = ''; ulEl.appendChild(frag); highlightPlaying(ulEl);
   }
 
   function renderQueueList() {
@@ -616,7 +581,6 @@ const UI = (() => {
   }
 
   function openModal(id) { el.modalBackdrop.classList.add('open'); document.getElementById(id).classList.add('open'); }
-
   function closeModal(id) {
     document.getElementById(id).classList.remove('open');
     if (!el.modalBackdrop.querySelectorAll('.modal.open').length) el.modalBackdrop.classList.remove('open');
@@ -660,11 +624,8 @@ const Player = (() => {
 
   function togglePlay() {
     if (!State.currentSong()) return;
-    if (State.isPlaying) {
-      AudioEngine.pause(); State.setPlaying(false); Visualizer.stop();
-    } else {
-      EQ.resume(); AudioEngine.play(); State.setPlaying(true); Visualizer.start();
-    }
+    if (State.isPlaying) { AudioEngine.pause(); State.setPlaying(false); Visualizer.stop(); }
+    else { EQ.resume(); AudioEngine.play(); State.setPlaying(true); Visualizer.start(); }
     UI.updatePlayButton(State.isPlaying);
     MiniBar.update();
   }
@@ -774,25 +735,6 @@ function makeSlider(trackEl, onChange) {
 async function init() {
   UI.el.greetingTime.textContent = UI.greeting();
 
-  // Wait for Firebase profile data to be ready
-  await new Promise(resolve => {
-    if (window._profileData !== undefined) { resolve(); return; }
-    window.addEventListener('profileReady', resolve, { once: true });
-    // Fallback after 3s if Firebase not available
-    setTimeout(resolve, 3000);
-  });
-
-  // Load per-profile data from Firebase if available
-  const pd = window._profileData;
-  if (pd) {
-    // Override localStorage with profile-specific data
-    if (pd.playlists) localStorage.setItem('wavvve_playlists', JSON.stringify(pd.playlists));
-    if (pd.likedSongs) localStorage.setItem('wavvve_liked', JSON.stringify(pd.likedSongs));
-    if (pd.searchHistory) localStorage.setItem('wavvve_search_history', JSON.stringify(pd.searchHistory));
-  }
-
-  // Re-init State with fresh localStorage
-  // (State already reads from localStorage on module load — reload key values)
   try {
     const res = await fetch('./songs.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -812,10 +754,8 @@ async function init() {
   UI.updateVolume(State.volume);
   Visualizer.init();
 
-  // Apply saved EQ preset label
-  document.querySelectorAll('.eq-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.eq === State.eqPreset);
-  });
+  // Apply saved EQ
+  document.querySelectorAll('.eq-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.eq === State.eqPreset));
   const eqLabel = document.getElementById('eq-active-name');
   if (eqLabel) eqLabel.textContent = State.eqPreset.charAt(0).toUpperCase() + State.eqPreset.slice(1);
 
@@ -852,7 +792,7 @@ async function init() {
   UI.el.searchClear.addEventListener('click', () => { UI.el.searchInput.value = ''; Search.run(''); UI.el.searchInput.focus(); UI.renderSearchHistory(); });
   document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) UI.el.searchHistory?.classList.remove('visible'); });
 
-  // ── PLAYER CONTROLS ──
+  // ── PLAYER ──
   UI.el.btnPlay.addEventListener('click', Player.togglePlay);
   UI.el.btnNext.addEventListener('click', Player.playNext);
   UI.el.btnPrev.addEventListener('click', Player.playPrev);
@@ -895,13 +835,12 @@ async function init() {
   });
   document.getElementById('btn-cancel-timer')?.addEventListener('click', () => { SleepTimer.clear(); showToast('⏱ Sleep timer cancelled'); });
 
-  // ── EQUALIZER ──
+  // ── EQ ──
   document.getElementById('btn-eq').addEventListener('click', () => UI.openModal('modal-eq'));
   document.querySelectorAll('.eq-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const preset = btn.dataset.eq;
-      State.setEQ(preset);
-      EQ.applyPreset(preset);
+      State.setEQ(preset); EQ.applyPreset(preset);
       document.querySelectorAll('.eq-btn').forEach(b => b.classList.toggle('active', b.dataset.eq === preset));
       const label = document.getElementById('eq-active-name');
       if (label) label.textContent = preset.charAt(0).toUpperCase() + preset.slice(1);

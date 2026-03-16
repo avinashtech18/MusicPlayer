@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wavvve — Music Player</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +16,6 @@
 
 <body>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <span class="logo-mark">W</span>
@@ -38,7 +39,6 @@
             d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" />
         </svg>Playlists
       </button>
-      <!-- Queue nav item -->
       <button class="nav-item" data-view="queue">
         <svg viewBox="0 0 24 24">
           <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
@@ -66,7 +66,6 @@
 
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- MAIN -->
   <main class="main-content" id="main-content">
     <header class="topbar">
       <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
@@ -89,27 +88,20 @@
         </button>
         <div id="search-history"></div>
       </div>
-      <!-- Sleep Timer button in topbar -->
       <button class="btn-icon topbar-btn" id="btn-sleep-timer" title="Sleep Timer">
         <svg viewBox="0 0 24 24">
           <path
             d="M17.75 4.09l-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94 3.17-.25L12 1l1.38 2.84 3.17.25zM5 11H1v2h4v-2zm.64 6.27L3.22 19.7l1.42 1.42 2.42-2.44-1.42-1.41zM13 17h-2v4h2v-4zm6.36.27l-1.41 1.41 2.44 2.44 1.41-1.41-2.44-2.44zM19 11v2h4v-2h-4zm-7-4c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm1-4.18V9h-2v4.18l2.83 2.83 1.41-1.41L13 12.82z" />
         </svg>
       </button>
-      <!-- EQ button in topbar -->
       <button class="btn-icon topbar-btn" id="btn-eq" title="Equalizer">
         <svg viewBox="0 0 24 24">
           <path d="M10 20H8V4h2v16zm-4-4H4V8h2v8zm8 6h-2V2h2v20zm4-4h-2V6h2v12zm4 2h-2V8h2v12z" />
         </svg>
       </button>
-      <!-- Profile chip -->
-      <div id="profile-chip"
-        style="display:none;align-items:center;gap:8px;cursor:pointer;padding:4px 10px;border-radius:99px;background:var(--bg-elevated);border:1px solid var(--border);"
-        onclick="window.location.href='profiles.html'" title="Switch Profile"></div>
     </header>
 
     <div class="view-container">
-      <!-- HOME -->
       <section class="view active" id="view-home">
         <div class="view-header">
           <h1 class="view-title">Good <span id="greeting-time">evening</span></h1>
@@ -124,7 +116,6 @@
         <ul class="song-list" id="song-list-home" role="list"></ul>
       </section>
 
-      <!-- LIBRARY -->
       <section class="view" id="view-library">
         <div class="view-header">
           <h1 class="view-title">Your Library</h1>
@@ -139,7 +130,6 @@
         <ul class="song-list" id="song-list-library" role="list"></ul>
       </section>
 
-      <!-- PLAYLISTS -->
       <section class="view" id="view-playlists">
         <div class="view-header">
           <h1 class="view-title">Playlists</h1>
@@ -166,7 +156,6 @@
         </div>
       </section>
 
-      <!-- SEARCH -->
       <section class="view" id="view-search">
         <div class="view-header">
           <h1 class="view-title">Search Results</h1>
@@ -181,7 +170,6 @@
         <ul class="song-list" id="song-list-search" role="list"></ul>
       </section>
 
-      <!-- QUEUE VIEW -->
       <section class="view" id="view-queue">
         <div class="view-header">
           <h1 class="view-title">Up Next</h1>
@@ -198,14 +186,10 @@
     </div>
   </main>
 
-  <!-- DESKTOP NOW PLAYING BAR (above player) -->
   <div class="now-playing-bar" id="now-playing-bar">
-    <div class="npb-marquee">
-      <span id="npb-text">Nothing playing</span>
-    </div>
+    <div class="npb-marquee"><span id="npb-text">Nothing playing</span></div>
   </div>
 
-  <!-- PLAYER BAR -->
   <footer class="player-bar" id="player-bar">
     <div class="player-info">
       <div class="player-art" id="player-art">
@@ -289,7 +273,7 @@
     </div>
   </footer>
 
-  <!-- MOBILE NOW PLAYING BAR -->
+  <!-- Mobile Now Playing -->
   <div class="mobile-now-playing" id="mobile-now-playing">
     <div class="mnp-art" id="mnp-art">
       <svg viewBox="0 0 24 24">
@@ -301,11 +285,9 @@
       <div class="mnp-artist" id="mnp-artist">—</div>
     </div>
     <div class="mnp-controls">
-      <button class="btn-icon" id="mnp-prev">
-        <svg viewBox="0 0 24 24">
+      <button class="btn-icon" id="mnp-prev"><svg viewBox="0 0 24 24">
           <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
-        </svg>
-      </button>
+        </svg></button>
       <button class="btn-icon mnp-play" id="mnp-play">
         <svg class="icon-play" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
@@ -314,20 +296,17 @@
           <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
         </svg>
       </button>
-      <button class="btn-icon" id="mnp-next">
-        <svg viewBox="0 0 24 24">
+      <button class="btn-icon" id="mnp-next"><svg viewBox="0 0 24 24">
           <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
-        </svg>
-      </button>
+        </svg></button>
     </div>
     <div class="mnp-progress">
       <div class="mnp-progress-fill" id="mnp-progress-fill"></div>
     </div>
   </div>
 
-  <!-- MODALS -->
+  <!-- Modals -->
   <div class="modal-backdrop" id="modal-backdrop">
-    <!-- New Playlist -->
     <div class="modal" id="modal-new-playlist">
       <div class="modal-header">
         <h2>Create Playlist</h2>
@@ -345,7 +324,6 @@
       </div>
     </div>
 
-    <!-- Add to Playlist -->
     <div class="modal" id="modal-add-to-playlist">
       <div class="modal-header">
         <h2>Add to Playlist</h2>
@@ -362,7 +340,6 @@
       </div>
     </div>
 
-    <!-- Sleep Timer -->
     <div class="modal" id="modal-sleep-timer">
       <div class="modal-header">
         <h2>⏱ Sleep Timer</h2>
@@ -391,7 +368,6 @@
       </div>
     </div>
 
-    <!-- Equalizer -->
     <div class="modal" id="modal-eq">
       <div class="modal-header">
         <h2>🎛 Equalizer</h2>
@@ -421,82 +397,6 @@
   </div>
 
   <audio id="audio-player" preload="metadata" crossorigin="anonymous"></audio>
-
-  <!-- Firebase auth guard -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-    import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCuQUk9_xYoJKtFpveOl5jEFZQ8iKy5PhQ",
-      authDomain: "wavvve-8b6a4.firebaseapp.com",
-      projectId: "wavvve-8b6a4",
-      storageBucket: "wavvve-8b6a4.firebasestorage.app",
-      messagingSenderId: "972316411778",
-      appId: "1:972316411778:web:e7ed6bc59fa124c042f19b"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window._fbApp = app;
-    window._fbAuth = auth;
-    window._fbDb = db;
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) { window.location.href = 'login.html'; return; }
-
-      // Check profile selected
-      const profileStr = sessionStorage.getItem('wavvve_profile');
-      if (!profileStr) { window.location.href = 'profiles.html'; return; }
-
-      const profile = JSON.parse(profileStr);
-      window._currentProfile = profile;
-
-      // Load profile data from Firestore
-      const ref = doc(db, 'users', user.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) { window.location.href = 'login.html'; return; }
-
-      const userData = snap.data();
-      const prof = (userData.profiles || []).find(p => p.id === profile.id);
-      if (prof) {
-        window._profileData = prof;
-      } else {
-        window._profileData = { playlists: [], likedSongs: [], searchHistory: [] };
-      }
-
-      // Show profile chip
-      const chip = document.getElementById('profile-chip');
-      if (chip) {
-        chip.innerHTML = `
-          <div style="width:28px;height:28px;border-radius:6px;background:${profile.color};display:flex;align-items:center;justify-content:center;font-family:'Righteous',cursive;font-size:13px;color:#fff;flex-shrink:0;">${profile.name.charAt(0).toUpperCase()}</div>
-          <span style="font-size:13px;font-weight:700;color:var(--text-2)">${profile.name}</span>`;
-        chip.style.display = 'flex';
-      }
-
-      // Signal app.js that profile data is ready
-      window.dispatchEvent(new Event('profileReady'));
-    });
-
-    // Save profile data to Firestore
-    window.saveProfileData = async (field, value) => {
-      if (!window._currentProfile || !window._fbAuth.currentUser) return;
-      const uid = window._fbAuth.currentUser.uid;
-      const ref = doc(db, 'users', uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return;
-      const userData = snap.data();
-      const profiles = (userData.profiles || []).map(p =>
-        p.id === window._currentProfile.id ? { ...p, [field]: value } : p
-      );
-      await updateDoc(ref, { profiles });
-      if (window._profileData) window._profileData[field] = value;
-    };
-  </script>
-
   <script src="app.js"></script>
 </body>
 
