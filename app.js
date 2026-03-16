@@ -75,10 +75,7 @@ const State = (() => {
       return _currentIdx;
     },
 
-    currentSong() {
-      return _currentIdx >= 0 ? _songs[_currentIdx] : null;
-    },
-
+    currentSong() { return _currentIdx >= 0 ? _songs[_currentIdx] : null; },
     queuePosition() { return _queueIdx + 1; },
 
     toggleLike(idx) {
@@ -101,10 +98,7 @@ const State = (() => {
       saveHistory();
     },
 
-    clearSearchHistory() {
-      _searchHistory = [];
-      saveHistory();
-    },
+    clearSearchHistory() { _searchHistory = []; saveHistory(); },
 
     createPlaylist(name) {
       const pl = { id: Date.now(), name, songs: [] };
@@ -162,156 +156,67 @@ const AudioEngine = (() => {
 })();
 
 /* ===========================
-   AUDIO VISUALIZER
+   VISUALIZER
+   CSS bar animation — works with Cloudinary CORS
    =========================== */
 const Visualizer = (() => {
-  let _ctx = null;   // AudioContext
-  let _analyser = null;
-  let _source = null;
-  let _rafId = null;
-  let _canvas = null;
-  let _canvasCtx = null;
-  let _connected = false;
   const BAR_COUNT = 28;
+  let _container = null;
+  let _bars = [];
+  let _rafId = null;
+  let _playing = false;
 
-  // Neon gradient colors matching the website theme
-  const COLORS = [
-    '#ff2d78', '#e8306e', '#d03464',
-    '#c44dff', '#b050ee', '#9a53dd',
-    '#7a56cc', '#5a59bb', '#3a5caa',
-    '#1a5f99', '#00e5ff'
-  ];
+  function init() {
+    _container = document.getElementById('viz-bars');
+    if (!_container) return;
 
-  function getColor(index) {
-    const pos = index / BAR_COUNT;
-    if (pos < 0.4) return `hsl(${340 + pos * 60}, 100%, 60%)`;  // pink
-    else if (pos < 0.7) return `hsl(${280 + pos * 40}, 100%, 65%)`;  // purple
-    else return `hsl(${190 + pos * 20}, 100%, 60%)`;  // cyan
-  }
+    _container.innerHTML = '';
+    _bars = [];
 
-  function init(audioElement) {
-    if (_connected) return;
-    try {
-      _ctx = new (window.AudioContext || window.webkitAudioContext)();
-      _analyser = _ctx.createAnalyser();
-      _source = _ctx.createMediaElementSource(audioElement);
-      _source.connect(_analyser);
-      _analyser.connect(_ctx.destination);
-      _analyser.fftSize = 128;
-      _connected = true;
-    } catch (e) {
-      console.warn('Visualizer init failed:', e);
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'viz-bar';
+      // Stagger animation delay so bars don't all move together
+      bar.style.animationDelay = `${(i * 0.08) % 1.2}s`;
+      bar.style.animationDuration = `${0.4 + (i % 7) * 0.1}s`;
+      _container.appendChild(bar);
+      _bars.push(bar);
     }
-  }
-
-  function setupCanvas() {
-    _canvas = document.getElementById('visualizer-canvas');
-    if (!_canvas) return false;
-    _canvasCtx = _canvas.getContext('2d');
-    return true;
   }
 
   function start() {
-    if (!_connected || !_analyser) return;
-    if (!_canvas && !setupCanvas()) return;
-    if (_rafId) cancelAnimationFrame(_rafId);
-    draw();
+    if (!_container) init();
+    _playing = true;
+    _container?.classList.add('playing');
+    _animate();
   }
 
   function stop() {
-    if (_rafId) {
-      cancelAnimationFrame(_rafId);
-      _rafId = null;
-    }
-    if (_canvas && _canvasCtx) {
-      _canvasCtx.clearRect(0, 0, _canvas.width, _canvas.height);
-      drawIdle();
-    }
+    _playing = false;
+    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+    _container?.classList.remove('playing');
+    // Reset bars to small idle state
+    _bars.forEach(b => { b.style.height = '4px'; });
   }
 
-  function draw() {
-    if (!_analyser || !_canvas || !_canvasCtx) return;
+  let _t = 0;
+  function _animate() {
+    if (!_playing) return;
+    _rafId = requestAnimationFrame(_animate);
+    _t += 0.04;
 
-    _rafId = requestAnimationFrame(draw);
-
-    const W = _canvas.width = _canvas.offsetWidth;
-    const H = _canvas.height = _canvas.offsetHeight;
-
-    const bufferLen = _analyser.frequencyBinCount;
-    const dataArr = new Uint8Array(bufferLen);
-    _analyser.getByteFrequencyData(dataArr);
-
-    _canvasCtx.clearRect(0, 0, W, H);
-
-    const barW = (W / BAR_COUNT) * 0.6;
-    const gap = (W / BAR_COUNT) * 0.4;
-    const step = Math.floor(bufferLen / BAR_COUNT);
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      // Average a few bins for smoother bars
-      let val = 0;
-      for (let k = 0; k < step; k++) {
-        val += dataArr[i * step + k];
-      }
-      val = val / step;
-
-      const barH = (val / 255) * H * 0.85 + 2;
-      const x = i * (barW + gap) + gap / 2;
-      const y = (H - barH) / 2; // center vertically
-
-      // Gradient per bar
-      const grad = _canvasCtx.createLinearGradient(0, y, 0, y + barH);
-      const col = getColor(i);
-      grad.addColorStop(0, col);
-      grad.addColorStop(0.5, col + 'cc');
-      grad.addColorStop(1, col);
-
-      // Glow effect
-      _canvasCtx.shadowColor = col;
-      _canvasCtx.shadowBlur = 8;
-
-      _canvasCtx.fillStyle = grad;
-      _canvasCtx.beginPath();
-      _canvasCtx.roundRect(x, y, barW, barH, 3);
-      _canvasCtx.fill();
-    }
+    _bars.forEach((bar, i) => {
+      // Pseudo-random wave based on bar index and time
+      const wave1 = Math.sin(_t * 2.1 + i * 0.6) * 0.4;
+      const wave2 = Math.sin(_t * 3.7 + i * 1.1) * 0.3;
+      const wave3 = Math.sin(_t * 1.3 + i * 0.3) * 0.3;
+      const raw = (wave1 + wave2 + wave3 + 1) / 2; // 0–1
+      const h = Math.max(4, raw * 52) + 'px';
+      bar.style.height = h;
+    });
   }
 
-  // Idle animation — gentle breathing bars when paused
-  function drawIdle() {
-    if (!_canvas || !_canvasCtx) return;
-    const W = _canvas.width = _canvas.offsetWidth;
-    const H = _canvas.height = _canvas.offsetHeight;
-
-    _canvasCtx.clearRect(0, 0, W, H);
-
-    const barW = (W / BAR_COUNT) * 0.6;
-    const gap = (W / BAR_COUNT) * 0.4;
-    const t = Date.now() / 1000;
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const wave = Math.sin(t * 1.5 + i * 0.4) * 0.3 + 0.35;
-      const barH = wave * H * 0.5 + 2;
-      const x = i * (barW + gap) + gap / 2;
-      const y = (H - barH) / 2;
-      const col = getColor(i);
-
-      _canvasCtx.shadowColor = col;
-      _canvasCtx.shadowBlur = 4;
-      _canvasCtx.fillStyle = col + '55';
-      _canvasCtx.beginPath();
-      _canvasCtx.roundRect(x, y, barW, barH, 3);
-      _canvasCtx.fill();
-    }
-
-    _rafId = requestAnimationFrame(drawIdle);
-  }
-
-  function resume() {
-    if (_ctx && _ctx.state === 'suspended') _ctx.resume();
-  }
-
-  return { init, start, stop, drawIdle, resume, setupCanvas };
+  return { init, start, stop };
 })();
 
 /* ===========================
@@ -474,7 +379,6 @@ const UI = (() => {
     if (!song) return;
     el.playerTitle.textContent = song.title;
     el.playerArtist.textContent = song.artist || '—';
-    // Keep canvas, don't replace player-art inner HTML
     el.playerHeart.classList.toggle('liked', State.likedSongs.has(State.currentIdx));
     updatePosition();
   }
@@ -519,10 +423,8 @@ const UI = (() => {
     el.searchHistory.classList.add('visible');
 
     document.getElementById('sh-clear-all')?.addEventListener('click', () => {
-      State.clearSearchHistory();
-      renderSearchHistory();
+      State.clearSearchHistory(); renderSearchHistory();
     });
-
     el.searchHistory.querySelectorAll('.sh-query').forEach(btn => {
       btn.addEventListener('click', () => {
         el.searchInput.value = btn.dataset.query;
@@ -530,7 +432,6 @@ const UI = (() => {
         el.searchHistory.classList.remove('visible');
       });
     });
-
     el.searchHistory.querySelectorAll('.sh-remove').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -590,9 +491,7 @@ const UI = (() => {
     el.playlistDetail.style.display = 'block';
     el.playlistDetailTitle.textContent = pl.name;
     el.playlistDetailCount.textContent = `${pl.songs.length} song${pl.songs.length !== 1 ? 's' : ''}`;
-    const songs = pl.songs.map(i => State.songs[i]);
-    const indices = [...pl.songs];
-    renderSongList(el.songListPlaylist, songs, indices);
+    renderSongList(el.songListPlaylist, pl.songs.map(i => State.songs[i]), [...pl.songs]);
     renderSidebarPlaylists();
   }
 
@@ -610,8 +509,8 @@ const UI = (() => {
 
   function closeModal(id) {
     document.getElementById(id).classList.remove('open');
-    const open = el.modalBackdrop.querySelectorAll('.modal.open');
-    if (!open.length) el.modalBackdrop.classList.remove('open');
+    if (!el.modalBackdrop.querySelectorAll('.modal.open').length)
+      el.modalBackdrop.classList.remove('open');
   }
 
   function closeSidebar() {
@@ -628,12 +527,10 @@ const UI = (() => {
     el, fmtTime, greeting, escHtml,
     renderSongList, highlightPlaying, highlightAllLists,
     updatePlayButton, updateProgress, updateVolume, updatePlayerMeta, updatePosition,
-    renderSearchHistory,
-    showView,
+    renderSearchHistory, showView,
     renderSidebarPlaylists, renderPlaylistGrid,
     openPlaylistDetail, closePlaylistDetail,
-    openModal, closeModal,
-    openSidebar, closeSidebar,
+    openModal, closeModal, openSidebar, closeSidebar,
   };
 })();
 
@@ -647,11 +544,6 @@ const Player = (() => {
     State.buildQueue(songIdx);
     AudioEngine.load(song.url);
     AudioEngine.setVolume(State.isMuted ? 0 : State.volume);
-
-    // Init visualizer on first play (requires user gesture)
-    Visualizer.init(AudioEngine.element);
-    Visualizer.resume();
-
     AudioEngine.play().then(() => {
       State.setPlaying(true);
       UI.updatePlayButton(true);
@@ -668,7 +560,6 @@ const Player = (() => {
       State.setPlaying(false);
       Visualizer.stop();
     } else {
-      Visualizer.resume();
       AudioEngine.play();
       State.setPlaying(true);
       Visualizer.start();
@@ -676,15 +567,10 @@ const Player = (() => {
     UI.updatePlayButton(State.isPlaying);
   }
 
-  function playNext() {
-    const idx = State.advance(1);
-    playSong(idx);
-  }
-
+  function playNext() { playSong(State.advance(1)); }
   function playPrev() {
     if (AudioEngine.currentTime > 3) { AudioEngine.seek(0); return; }
-    const idx = State.advance(-1);
-    playSong(idx);
+    playSong(State.advance(-1));
   }
 
   function toggleShuffle() {
@@ -720,36 +606,24 @@ const Search = (() => {
   function run(query) {
     query = query.trim().toLowerCase();
     UI.el.searchClear.classList.toggle('visible', query.length > 0);
-
     if (!query) {
       UI.showView(State.activeView === 'search' ? 'home' : State.activeView);
       UI.renderSearchHistory();
       return;
     }
-
     if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
-
     const results = State.songs.reduce((acc, song, i) => {
-      const haystack = (song.title + ' ' + (song.artist || '')).toLowerCase();
-      if (haystack.includes(query)) acc.push({ song, idx: i });
+      if ((song.title + ' ' + (song.artist || '')).toLowerCase().includes(query))
+        acc.push({ song, idx: i });
       return acc;
     }, []);
-
     UI.showView('search');
     UI.el.searchResultInfo.textContent =
       `${results.length} result${results.length !== 1 ? 's' : ''} for "${query}"`;
-    UI.renderSongList(
-      UI.el.songListSearch,
-      results.map(r => r.song),
-      results.map(r => r.idx)
-    );
-
+    UI.renderSongList(UI.el.songListSearch, results.map(r => r.song), results.map(r => r.idx));
     if (query !== _lastSaved && query.length >= 2) {
       clearTimeout(_debounceTimer);
-      _debounceTimer = setTimeout(() => {
-        State.addSearchHistory(query);
-        _lastSaved = query;
-      }, 1000);
+      _debounceTimer = setTimeout(() => { State.addSearchHistory(query); _lastSaved = query; }, 1000);
     }
   }
 
@@ -762,7 +636,7 @@ const Search = (() => {
 })();
 
 /* ===========================
-   PLAYLISTS CONTROLLER
+   PLAYLISTS
    =========================== */
 const Playlists = (() => {
   let _pendingSongIdx = null;
@@ -838,18 +712,17 @@ function makeSlider(trackEl, onChange) {
 async function init() {
   UI.el.greetingTime.textContent = UI.greeting();
 
-  // ── LOAD SONGS ──
   try {
     const res = await fetch('./songs.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const songs = await res.json();
-    if (!Array.isArray(songs) || songs.length === 0) throw new Error('Empty songs list');
+    if (!Array.isArray(songs) || !songs.length) throw new Error('Empty');
     State.setSongs(songs);
     if (UI.el.songCountLabel)
       UI.el.songCountLabel.textContent = `${songs.length} songs in your library`;
     console.log(`✅ Loaded ${songs.length} songs`);
   } catch (e) {
-    console.error('❌ Could not load songs.json:', e.message);
+    console.error('❌ songs.json:', e.message);
     State.setSongs([]);
   }
 
@@ -862,9 +735,8 @@ async function init() {
   AudioEngine.setVolume(State.volume);
   UI.updateVolume(State.volume);
 
-  // Start idle visualizer animation
-  Visualizer.setupCanvas();
-  Visualizer.drawIdle();
+  // Init visualizer bars
+  Visualizer.init();
 
   // ── NAV ──
   UI.el.navItems.forEach(btn => {
@@ -905,35 +777,26 @@ async function init() {
   UI.el.searchInput.addEventListener('focus', () => {
     if (!UI.el.searchInput.value.trim()) UI.renderSearchHistory();
   });
-
   UI.el.searchInput.addEventListener('input', e => {
     Search.debounce(e.target.value);
     if (!e.target.value.trim()) UI.renderSearchHistory();
   });
-
   UI.el.searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      UI.el.searchInput.value = '';
-      Search.run('');
-      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
-    }
+    if (e.key === 'Escape') { UI.el.searchInput.value = ''; Search.run(''); UI.el.searchHistory?.classList.remove('visible'); }
     if (e.key === 'Enter' && UI.el.searchInput.value.trim()) {
       State.addSearchHistory(UI.el.searchInput.value.trim());
-      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
+      UI.el.searchHistory?.classList.remove('visible');
     }
   });
-
   UI.el.searchClear.addEventListener('click', () => {
     UI.el.searchInput.value = '';
     Search.run('');
     UI.el.searchInput.focus();
     UI.renderSearchHistory();
   });
-
   document.addEventListener('click', e => {
-    if (!e.target.closest('.search-wrap') && !e.target.closest('#search-history')) {
-      if (UI.el.searchHistory) UI.el.searchHistory.classList.remove('visible');
-    }
+    if (!e.target.closest('.search-wrap') && !e.target.closest('#search-history'))
+      UI.el.searchHistory?.classList.remove('visible');
   });
 
   // ── PLAYER CONTROLS ──
@@ -954,41 +817,30 @@ async function init() {
     AudioEngine.seek(pct);
     UI.updateProgress(AudioEngine.currentTime, AudioEngine.duration);
   });
-
   makeSlider(UI.el.volumeTrack, pct => {
-    State.setVolume(pct);
-    State.setMuted(pct === 0);
-    AudioEngine.setVolume(pct);
-    AudioEngine.setMuted(pct === 0);
+    State.setVolume(pct); State.setMuted(pct === 0);
+    AudioEngine.setVolume(pct); AudioEngine.setMuted(pct === 0);
     UI.updateVolume(pct);
   });
-
   UI.el.btnMute.addEventListener('click', () => {
     const muted = !State.isMuted;
-    State.setMuted(muted);
-    AudioEngine.setMuted(muted);
+    State.setMuted(muted); AudioEngine.setMuted(muted);
     UI.updateVolume(muted ? 0 : State.volume);
   });
 
   // ── PLAYLISTS ──
   UI.el.newPlaylistBtn.addEventListener('click', Playlists.openNewPlaylistModal);
   UI.el.confirmNewPlaylist.addEventListener('click', Playlists.confirmCreate);
-  UI.el.playlistNameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') Playlists.confirmCreate();
-  });
-
+  UI.el.playlistNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') Playlists.confirmCreate(); });
   UI.el.playlistGrid.addEventListener('click', e => {
     const card = e.target.closest('.playlist-card');
     if (card) UI.openPlaylistDetail(parseInt(card.dataset.id, 10));
   });
-
   UI.el.playlistList.addEventListener('click', e => {
     const li = e.target.closest('li[data-id]');
     if (li) { UI.showView('playlists'); UI.openPlaylistDetail(parseInt(li.dataset.id, 10)); }
   });
-
   UI.el.playlistBack.addEventListener('click', UI.closePlaylistDetail);
-
   UI.el.modalPlaylistList.addEventListener('click', e => {
     const li = e.target.closest('li[data-id]');
     if (li) Playlists.addSongToPlaylist(parseInt(li.dataset.id, 10));
@@ -1003,7 +855,7 @@ async function init() {
       document.querySelectorAll('.modal.open').forEach(m => UI.closeModal(m.id));
   });
 
-  // ── MOBILE ──
+  // ── MOBILE SIDEBAR ──
   UI.el.mobileMenuBtn.addEventListener('click', UI.openSidebar);
   UI.el.sidebarClose.addEventListener('click', UI.closeSidebar);
   UI.el.sidebarOverlay.addEventListener('click', UI.closeSidebar);
