@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wavvve — Login</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #06060f;
+            --surface: #0c0c1e;
+            --card: #13132a;
+            --border: rgba(255, 255, 255, 0.08);
+            --pink: #ff2d78;
+            --purple: #c44dff;
+            --cyan: #00e5ff;
+            --text: #ffffff;
+            --muted: #9999bb;
+            --dim: #555577;
+            --grad: linear-gradient(135deg, #ff2d78, #c44dff, #00e5ff);
+            --glow: rgba(255, 45, 120, 0.35);
+            --font-h: 'Righteous', cursive;
+            --font-b: 'Nunito', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 45, 120, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 229, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(196, 77, 255, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* Logo */
+        .logo {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo-mark {
+            width: 64px;
+            height: 64px;
+            background: var(--grad);
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-h);
+            font-size: 32px;
+            color: #fff;
+            box-shadow: 0 8px 32px var(--glow);
+            margin-bottom: 12px;
+        }
+
+        .logo-text {
+            display: block;
+            font-family: var(--font-h);
+            font-size: 32px;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-sub {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--grad);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-family: var(--font-b);
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .tab.active {
+            background: var(--grad);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--glow);
+        }
+
+        /* Form */
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form.hidden {
+            display: none;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-family: var(--font-b);
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.18s;
+        }
+
+        input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.12);
+        }
+
+        input::placeholder {
+            color: var(--dim);
+        }
+
+        .btn {
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--font-b);
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--grad);
+            color: #fff;
+            box-shadow: 0 4px 20px var(--glow);
+            margin-top: 4px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 28px var(--glow);
+        }
+
+        .btn-google {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-google:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: var(--bg);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0;
+            color: var(--dim);
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Error */
+        .error-msg {
+            background: rgba(255, 45, 120, 0.1);
+            border: 1px solid rgba(255, 45, 120, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--pink);
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .spinner.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Google icon */
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center/contain no-repeat;
+            flex-shrink: 0;
+        }
+
+        .forgot {
+            text-align: right;
+            margin-top: -6px;
+        }
+
+        .forgot a {
+            color: var(--muted);
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .forgot a:hover {
+            color: var(--pink);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="logo">
+            <div class="logo-mark">W</div>
+            <span class="logo-text">Wavvve</span>
+            <p class="logo-sub">Your Tamil Music Player</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('login')">Sign In</button>
+                <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+
+            <div id="error-msg" class="error-msg"></div>
+
+            <!-- LOGIN FORM -->
+            <div class="form" id="form-login">
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" />
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password" />
+                </div>
+                <div class="forgot"><a href="#" onclick="forgotPassword()">Forgot password?</a></div>
+                <button class="btn btn-primary" onclick="loginEmail()" id="btn-login">
+                    <div class="spinner" id="spinner-login"></div>
+                    Sign In
+                </button>
+                <div class="divider">or</div>
+                <button class="btn btn-google" onclick="loginGoogle()">
+                    <div class="google-icon"></div>
+                    Continue with Google
+                </button>
+            </div>
+
+            <!-- SIGNUP FORM -->
+            <div class="form hidden" id="form-signup">
+                <div class="field">
+                    <label>Your Name</label>
+                    <input type="text" id="signup-name" placeholder="Avinash" />
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" id="signup-email" placeholder="you@example.com" />
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="signup-password" placeholder="Min 6 characters" />
+                </div>
+                <button class="btn btn-primary" onclick="signupEmail()" id="btn-signup">
+                    <div class="spinner" id="spinner-signup"></div>
+                    Create Account
+                </button>
+                <div class="divider">or</div>
+                <button class="btn btn-google" onclick="loginGoogle()">
+                    <div class="google-icon"></div>
+                    Continue with Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import {
+            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+            signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail,
+            onAuthStateChanged, updateProfile
+        }
+            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc }
+            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuQUk9_xYoJKtFpveOl5jEFZQ8iKy5PhQ",
+            authDomain: "wavvve-8b6a4.firebaseapp.com",
+            projectId: "wavvve-8b6a4",
+            storageBucket: "wavvve-8b6a4.firebasestorage.app",
+            messagingSenderId: "972316411778",
+            appId: "1:972316411778:web:e7ed6bc59fa124c042f19b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // If already logged in → go to profiles
+        onAuthStateChanged(auth, user => {
+            if (user) window.location.href = 'profiles.html';
+        });
+
+        // Create user profile doc if first time
+        async function ensureUserDoc(user, displayName) {
+            const ref = doc(db, 'users', user.uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+                await setDoc(ref, {
+                    uid: user.uid,
+                    email: user.email,
+                    name: displayName || user.displayName || 'Music Fan',
+                    createdAt: Date.now(),
+                    profiles: []
+                });
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        function setLoading(btnId, spinnerId, loading) {
+            document.getElementById(btnId).disabled = loading;
+            document.getElementById(spinnerId).classList.toggle('show', loading);
+        }
+
+        // ── Email Login ──
+        window.loginEmail = async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value;
+            if (!email || !pass) { showError('Please fill in all fields'); return; }
+            setLoading('btn-login', 'spinner-login', true);
+            try {
+                const cred = await signInWithEmailAndPassword(auth, email, pass);
+                await ensureUserDoc(cred.user, '');
+            } catch (e) {
+                showError(friendlyError(e.code));
+                setLoading('btn-login', 'spinner-login', false);
+            }
+        };
+
+        // ── Email Signup ──
+        window.signupEmail = async () => {
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const pass = document.getElementById('signup-password').value;
+            if (!name || !email || !pass) { showError('Please fill in all fields'); return; }
+            if (pass.length < 6) { showError('Password must be at least 6 characters'); return; }
+            setLoading('btn-signup', 'spinner-signup', true);
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                await updateProfile(cred.user, { displayName: name });
+                await ensureUserDoc(cred.user, name);
+            } catch (e) {
+                showError(friendlyError(e.code));
+                setLoading('btn-signup', 'spinner-signup', false);
+            }
+        };
+
+        // ── Google Login ──
+        window.loginGoogle = async () => {
+            try {
+                const cred = await signInWithPopup(auth, provider);
+                await ensureUserDoc(cred.user, '');
+            } catch (e) {
+                showError(friendlyError(e.code));
+            }
+        };
+
+        // ── Forgot Password ──
+        window.forgotPassword = async () => {
+            const email = document.getElementById('login-email').value.trim();
+            if (!email) { showError('Enter your email above first'); return; }
+            await sendPasswordResetEmail(auth, email);
+            showError('✅ Password reset email sent!');
+        };
+
+        function friendlyError(code) {
+            const map = {
+                'auth/user-not-found': 'No account found with this email',
+                'auth/wrong-password': 'Incorrect password',
+                'auth/email-already-in-use': 'Email already registered — try signing in',
+                'auth/invalid-email': 'Invalid email address',
+                'auth/weak-password': 'Password too weak — use 6+ characters',
+                'auth/popup-closed-by-user': 'Google sign-in was cancelled',
+                'auth/too-many-requests': 'Too many attempts — try again later',
+            };
+            return map[code] || 'Something went wrong. Please try again.';
+        }
+
+        // Enter key support
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('form-login').classList.contains('hidden')) window.signupEmail();
+                else window.loginEmail();
+            }
+        });
+    </script>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach((t, i) => {
+                t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
+            });
+            document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
+            document.getElementById('error-msg').classList.remove('show');
+        }
+    </script>
+</body>
+
+</html>

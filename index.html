@@ -102,6 +102,10 @@
           <path d="M10 20H8V4h2v16zm-4-4H4V8h2v8zm8 6h-2V2h2v20zm4-4h-2V6h2v12zm4 2h-2V8h2v12z" />
         </svg>
       </button>
+      <!-- Profile chip -->
+      <div id="profile-chip"
+        style="display:none;align-items:center;gap:8px;cursor:pointer;padding:4px 10px;border-radius:99px;background:var(--bg-elevated);border:1px solid var(--border);"
+        onclick="window.location.href='profiles.html'" title="Switch Profile"></div>
     </header>
 
     <div class="view-container">
@@ -417,6 +421,82 @@
   </div>
 
   <audio id="audio-player" preload="metadata" crossorigin="anonymous"></audio>
+
+  <!-- Firebase auth guard -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuQUk9_xYoJKtFpveOl5jEFZQ8iKy5PhQ",
+      authDomain: "wavvve-8b6a4.firebaseapp.com",
+      projectId: "wavvve-8b6a4",
+      storageBucket: "wavvve-8b6a4.firebasestorage.app",
+      messagingSenderId: "972316411778",
+      appId: "1:972316411778:web:e7ed6bc59fa124c042f19b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window._fbApp = app;
+    window._fbAuth = auth;
+    window._fbDb = db;
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { window.location.href = 'login.html'; return; }
+
+      // Check profile selected
+      const profileStr = sessionStorage.getItem('wavvve_profile');
+      if (!profileStr) { window.location.href = 'profiles.html'; return; }
+
+      const profile = JSON.parse(profileStr);
+      window._currentProfile = profile;
+
+      // Load profile data from Firestore
+      const ref = doc(db, 'users', user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) { window.location.href = 'login.html'; return; }
+
+      const userData = snap.data();
+      const prof = (userData.profiles || []).find(p => p.id === profile.id);
+      if (prof) {
+        window._profileData = prof;
+      } else {
+        window._profileData = { playlists: [], likedSongs: [], searchHistory: [] };
+      }
+
+      // Show profile chip
+      const chip = document.getElementById('profile-chip');
+      if (chip) {
+        chip.innerHTML = `
+          <div style="width:28px;height:28px;border-radius:6px;background:${profile.color};display:flex;align-items:center;justify-content:center;font-family:'Righteous',cursive;font-size:13px;color:#fff;flex-shrink:0;">${profile.name.charAt(0).toUpperCase()}</div>
+          <span style="font-size:13px;font-weight:700;color:var(--text-2)">${profile.name}</span>`;
+        chip.style.display = 'flex';
+      }
+
+      // Signal app.js that profile data is ready
+      window.dispatchEvent(new Event('profileReady'));
+    });
+
+    // Save profile data to Firestore
+    window.saveProfileData = async (field, value) => {
+      if (!window._currentProfile || !window._fbAuth.currentUser) return;
+      const uid = window._fbAuth.currentUser.uid;
+      const ref = doc(db, 'users', uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return;
+      const userData = snap.data();
+      const profiles = (userData.profiles || []).map(p =>
+        p.id === window._currentProfile.id ? { ...p, [field]: value } : p
+      );
+      await updateDoc(ref, { profiles });
+      if (window._profileData) window._profileData[field] = value;
+    };
+  </script>
+
   <script src="app.js"></script>
 </body>
 

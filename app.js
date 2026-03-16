@@ -25,9 +25,18 @@ const State = (() => {
   let _openPlaylistId = null;
   let _eqPreset = localStorage.getItem('wavvve_eq') || 'normal';
 
-  const savePlaylists = () => localStorage.setItem('wavvve_playlists', JSON.stringify(_playlists));
-  const saveLiked = () => localStorage.setItem('wavvve_liked', JSON.stringify([..._likedSongs]));
-  const saveHistory = () => localStorage.setItem('wavvve_search_history', JSON.stringify(_searchHistory));
+  const savePlaylists = () => {
+    localStorage.setItem('wavvve_playlists', JSON.stringify(_playlists));
+    window.saveProfileData?.('playlists', _playlists);
+  };
+  const saveLiked = () => {
+    localStorage.setItem('wavvve_liked', JSON.stringify([..._likedSongs]));
+    window.saveProfileData?.('likedSongs', [..._likedSongs]);
+  };
+  const saveHistory = () => {
+    localStorage.setItem('wavvve_search_history', JSON.stringify(_searchHistory));
+    window.saveProfileData?.('searchHistory', _searchHistory);
+  };
   const saveEQ = () => localStorage.setItem('wavvve_eq', _eqPreset);
 
   return {
@@ -765,6 +774,25 @@ function makeSlider(trackEl, onChange) {
 async function init() {
   UI.el.greetingTime.textContent = UI.greeting();
 
+  // Wait for Firebase profile data to be ready
+  await new Promise(resolve => {
+    if (window._profileData !== undefined) { resolve(); return; }
+    window.addEventListener('profileReady', resolve, { once: true });
+    // Fallback after 3s if Firebase not available
+    setTimeout(resolve, 3000);
+  });
+
+  // Load per-profile data from Firebase if available
+  const pd = window._profileData;
+  if (pd) {
+    // Override localStorage with profile-specific data
+    if (pd.playlists) localStorage.setItem('wavvve_playlists', JSON.stringify(pd.playlists));
+    if (pd.likedSongs) localStorage.setItem('wavvve_liked', JSON.stringify(pd.likedSongs));
+    if (pd.searchHistory) localStorage.setItem('wavvve_search_history', JSON.stringify(pd.searchHistory));
+  }
+
+  // Re-init State with fresh localStorage
+  // (State already reads from localStorage on module load — reload key values)
   try {
     const res = await fetch('./songs.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
