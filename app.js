@@ -449,19 +449,36 @@ const UI = (() => {
 
   function createSongItem(song, songIdx, displayNum) {
     const li = document.createElement('li');
-    li.className = 'song-item'; li.dataset.idx = songIdx; li.setAttribute('role', 'listitem');
+
+    li.className = 'song-item';
+    li.dataset.idx = songIdx;
+    li.setAttribute('role', 'listitem');
+
     li.innerHTML = `
-      <div class="song-num">
-        <span class="num-text">${displayNum}</span>
-        <svg class="play-indicator" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      </div>
-      <div class="song-name" title="${escHtml(song.title)}">${escHtml(song.title)}</div>
-      <div class="song-artist" title="${escHtml(song.artist || '—')}">${escHtml(song.artist || '—')}</div>
-      <div class="song-actions">
-        <button class="song-action-btn" data-action="add-to-playlist" data-idx="${songIdx}" title="Add to playlist" tabindex="-1">
-          <svg viewBox="0 0 24 24"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm-8 2H2v2h8v-2z"/></svg>
-        </button>
-      </div>`;
+    <div class="song-num">
+      <span class="num-text">${displayNum}</span>
+      <svg class="play-indicator" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+    </div>
+
+    <div class="song-name" title="${escHtml(song.title)}">
+      ${escHtml(song.title)}
+    </div>
+
+    <div class="song-artist" title="${escHtml(song.artist || '—')}">
+      ${escHtml(song.artist || '—')}
+    </div>
+
+    <div class="song-actions">
+      <button class="song-action-btn" data-action="add-to-playlist" data-idx="${songIdx}" title="Add to playlist" tabindex="-1">
+        <svg viewBox="0 0 24 24">
+          <path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm-8 2H2v2h8v-2z"/>
+        </svg>
+      </button>
+    </div>
+  `;
+
     return li;
   }
 
