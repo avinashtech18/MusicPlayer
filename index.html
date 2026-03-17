@@ -21,6 +21,7 @@
       <span class="logo-mark">W</span>
       <span class="logo-text">Wavvve</span>
     </div>
+
     <nav class="sidebar-nav">
       <button class="nav-item active" data-view="home">
         <svg viewBox="0 0 24 24">
@@ -329,12 +330,40 @@
     </div>
   </footer>
 
-  <!-- Mobile now playing hidden — player bar handles everything on mobile -->
-  <div class="mobile-now-playing" id="mobile-now-playing"></div>
+  <!-- Mobile Now Playing -->
+  <div class="mobile-now-playing" id="mobile-now-playing">
+    <div class="mnp-art" id="mnp-art">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+      </svg>
+    </div>
+    <div class="mnp-meta">
+      <div class="mnp-title" id="mnp-title">Nothing playing</div>
+      <div class="mnp-artist" id="mnp-artist">—</div>
+    </div>
+    <div class="mnp-controls">
+      <button class="btn-icon" id="mnp-prev"><svg viewBox="0 0 24 24">
+          <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+        </svg></button>
+      <button class="btn-icon mnp-play" id="mnp-play">
+        <svg class="icon-play" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" style="display:none">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+        </svg>
+      </button>
+      <button class="btn-icon" id="mnp-next"><svg viewBox="0 0 24 24">
+          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+        </svg></button>
+    </div>
+    <div class="mnp-progress">
+      <div class="mnp-progress-fill" id="mnp-progress-fill"></div>
+    </div>
+  </div>
 
   <!-- Modals -->
   <div class="modal-backdrop" id="modal-backdrop">
-
     <div class="modal" id="modal-new-playlist">
       <div class="modal-header">
         <h2>Create Playlist</h2>
@@ -368,7 +397,6 @@
       </div>
     </div>
 
-    <!-- SLEEP TIMER with custom input -->
     <div class="modal" id="modal-sleep-timer">
       <div class="modal-header">
         <h2>⏱ Sleep Timer</h2>
@@ -379,7 +407,7 @@
           </svg>
         </button>
       </div>
-      <p class="modal-hint">Music will stop after the selected time.</p>
+      <p class="modal-hint">Music will stop playing after the selected time.</p>
       <div class="timer-options">
         <button class="timer-btn" data-mins="5">5 min</button>
         <button class="timer-btn" data-mins="10">10 min</button>
@@ -387,13 +415,6 @@
         <button class="timer-btn" data-mins="30">30 min</button>
         <button class="timer-btn" data-mins="45">45 min</button>
         <button class="timer-btn" data-mins="60">1 hour</button>
-      </div>
-      <!-- Custom timer -->
-      <div class="timer-custom">
-        <input type="number" class="timer-custom-input" id="timer-custom-input" min="1" max="480"
-          placeholder="e.g. 25" />
-        <span class="timer-custom-label">minutes</span>
-        <button class="timer-custom-set" id="timer-custom-set">Set</button>
       </div>
       <div class="timer-active" id="timer-active" style="display:none">
         <div class="timer-countdown" id="timer-countdown">00:00</div>
