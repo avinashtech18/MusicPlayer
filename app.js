@@ -863,7 +863,23 @@ async function init() {
   // ── SLEEP TIMER ──
   document.getElementById('btn-sleep-timer').addEventListener('click', () => UI.openModal('modal-sleep-timer'));
   document.querySelectorAll('.timer-btn').forEach(btn => {
-    btn.addEventListener('click', () => { SleepTimer.set(parseInt(btn.dataset.mins)); UI.closeModal('modal-sleep-timer'); });
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      SleepTimer.set(parseInt(btn.dataset.mins));
+      UI.closeModal('modal-sleep-timer');
+    });
+  });
+  // Custom timer
+  document.getElementById('timer-custom-set').addEventListener('click', () => {
+    const val = parseInt(document.getElementById('timer-custom-input').value);
+    if (!val || val < 1 || val > 480) { showToast('⚠️ Enter a time between 1 and 480 minutes'); return; }
+    document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+    SleepTimer.set(val);
+    UI.closeModal('modal-sleep-timer');
+  });
+  document.getElementById('timer-custom-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('timer-custom-set').click();
   });
   document.getElementById('btn-cancel-timer')?.addEventListener('click', () => { SleepTimer.clear(); showToast('⏱ Sleep timer cancelled'); });
 
