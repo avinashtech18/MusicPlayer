@@ -32,7 +32,6 @@
   --sidebar-w: 255px;
   --player-h: 90px;
   --npb-h: 28px;
-  --mnp-h: 64px;
   --font-head: 'Righteous', cursive;
   --font-body: 'Nunito', sans-serif;
 }
@@ -47,7 +46,7 @@ body {
   overflow: hidden;
 }
 
-/* ── DESKTOP: sidebar always visible ── */
+/* Desktop layout: sidebar always visible */
 body {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
@@ -59,7 +58,7 @@ body {
 }
 
 /* ===========================
-   SIDEBAR — always visible on desktop
+   SIDEBAR — always visible desktop
    =========================== */
 .sidebar {
   grid-area: sidebar;
@@ -69,24 +68,17 @@ body {
   flex-direction: column;
   overflow: hidden;
   z-index: 100;
-  /* No fixed/absolute on desktop */
   position: relative;
-  left: auto;
-  bottom: auto;
-  transition: none;
 }
 
-/* Hide close button on desktop */
 .sidebar-close {
   display: none;
 }
 
-/* Hide menu button on desktop */
 .mobile-menu-btn {
   display: none;
 }
 
-/* No overlay needed on desktop */
 .sidebar-overlay {
   display: none !important;
 }
@@ -97,7 +89,6 @@ body {
   flex-direction: column;
   overflow: hidden;
   margin-left: 0 !important;
-  transition: none;
 }
 
 /* ── SIDEBAR MINI PLAYER ── */
@@ -220,7 +211,6 @@ body {
   transform: scale(1.1) !important;
 }
 
-/* Sidebar progress bar */
 .sp-progress {
   height: 3px;
   background: var(--bg-elevated);
@@ -943,7 +933,7 @@ body {
 }
 
 /* ===========================
-   DESKTOP NOW PLAYING BAR
+   NOW PLAYING BAR
    =========================== */
 .now-playing-bar {
   grid-area: npb;
@@ -1229,7 +1219,6 @@ body {
 
 .play-btn:hover {
   transform: scale(1.1) !important;
-  box-shadow: 0 0 0 6px rgba(255, 45, 120, 0.2), 0 8px 32px rgba(255, 45, 120, 0.55) !important;
 }
 
 .play-btn svg {
@@ -1345,125 +1334,11 @@ body {
 }
 
 /* ===========================
-   MOBILE NOW PLAYING BAR
+   MOBILE NOW PLAYING — hidden always
+   (mobile uses main player bar directly)
    =========================== */
 .mobile-now-playing {
-  display: none;
-  position: fixed;
-  bottom: calc(var(--player-h) + var(--npb-h));
-  left: 0;
-  right: 0;
-  height: var(--mnp-h);
-  background: rgba(12, 12, 30, 0.98);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-glow);
-  z-index: 150;
-  align-items: center;
-  gap: 12px;
-  padding: 0 14px;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.mnp-art {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-glow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.mnp-art svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--text-3);
-}
-
-.mnp-art.playing {
-  border-color: var(--neon-pink);
-  animation: artSpin 3s linear infinite;
-}
-
-.mnp-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.mnp-title {
-  font-family: var(--font-head);
-  font-size: 13px;
-  color: var(--text-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mnp-artist {
-  font-size: 11px;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mnp-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.mnp-controls .btn-icon {
-  padding: 6px;
-}
-
-.mnp-controls .btn-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.mnp-play {
-  width: 36px !important;
-  height: 36px !important;
-  background: var(--grad-main) !important;
-  color: #fff !important;
-  border-radius: 50% !important;
-  box-shadow: 0 0 12px rgba(255, 45, 120, 0.4) !important;
-}
-
-.mnp-play svg {
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.mnp-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--bg-elevated);
-}
-
-.mnp-progress-fill {
-  height: 100%;
-  background: var(--grad-main);
-  transition: width 0.25s linear;
+  display: none !important;
 }
 
 /* ===========================
@@ -1630,6 +1505,7 @@ body {
   color: var(--neon-pink);
 }
 
+/* ── SLEEP TIMER ── */
 .timer-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1651,10 +1527,65 @@ body {
   text-align: center;
 }
 
-.timer-btn:hover {
+.timer-btn:hover,
+.timer-btn.active {
   background: var(--accent-dim);
   color: var(--neon-pink);
   border-color: var(--neon-pink);
+}
+
+/* Custom timer input row */
+.timer-custom {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.timer-custom-input {
+  flex: 1;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  outline: none;
+  text-align: center;
+  transition: all 0.18s;
+}
+
+.timer-custom-input:focus {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.timer-custom-label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.timer-custom-set {
+  background: var(--grad-main);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.timer-custom-set:hover {
+  transform: translateY(-1px);
 }
 
 .timer-active {
@@ -1677,6 +1608,7 @@ body {
   background-clip: text;
 }
 
+/* ── EQ ── */
 .eq-presets {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1768,7 +1700,7 @@ body {
 }
 
 /* ===========================
-   RESPONSIVE — MOBILE
+   RESPONSIVE — TABLET
    =========================== */
 @media (max-width: 900px) {
 
@@ -1786,15 +1718,19 @@ body {
   }
 }
 
+/* ===========================
+   RESPONSIVE — MOBILE (≤720px)
+   Sidebar becomes slide overlay
+   Player bar is the ONLY controls
+   =========================== */
 @media (max-width: 720px) {
-
-  /* On mobile: sidebar becomes overlay again */
   body {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr var(--npb-h) var(--player-h);
     grid-template-areas: "main" "npb" "player";
   }
 
+  /* Sidebar: slide-in overlay on mobile */
   .sidebar {
     position: fixed;
     top: 0;
@@ -1833,6 +1769,11 @@ body {
     display: flex;
   }
 
+  /* Hide sidebar player on mobile */
+  .sidebar-player {
+    display: none;
+  }
+
   .topbar {
     padding: 12px 14px;
   }
@@ -1845,29 +1786,116 @@ body {
     font-size: 26px;
   }
 
-  .mobile-now-playing.visible {
-    display: flex;
-  }
-
-  .view {
-    padding-bottom: calc(var(--mnp-h) + 32px);
+  /* ── MOBILE PLAYER BAR ──
+     Layout (like image 2):
+     Row 1: art + song name + artist + heart
+     Row 2: shuffle / prev / [viz+play] / next / repeat
+     Row 3: progress bar + times
+  */
+  :root {
+    --player-h: 140px;
   }
 
   .player-bar {
-    grid-template-columns: 1fr auto 1fr;
-    padding: 0 12px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    padding: 10px 16px 12px;
+    gap: 6px;
+    height: auto;
+    min-height: var(--player-h);
   }
 
+  /* Row 1 — song info */
   .player-info {
-    gap: 8px;
+    gap: 10px;
+    justify-content: flex-start;
+    width: 100%;
   }
 
+  .player-art {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .player-title {
+    font-size: 13px;
+  }
+
+  .player-artist {
+    font-size: 11px;
+  }
+
+  /* Row 2 — all 5 controls + visualizer */
+  .player-controls {
+    width: 100%;
+    gap: 4px;
+  }
+
+  /* Show shuffle and repeat on mobile */
+  #btn-shuffle,
+  #btn-repeat {
+    display: flex !important;
+  }
+
+  .control-buttons {
+    gap: 0;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .btn-icon {
+    padding: 7px;
+  }
+
+  .btn-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Visualizer + play button — bigger on mobile */
+  .play-btn-wrap {
+    width: 100px;
+    height: 52px;
+    margin: 0 4px;
+  }
+
+  .play-btn {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .play-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Show visualizer bars on mobile */
+  .viz-bars {
+    display: flex !important;
+  }
+
+  .viz-bar {
+    max-width: 4px;
+  }
+
+  /* Row 3 — progress */
+  .progress-row {
+    max-width: 100%;
+  }
+
+  .time-label {
+    font-size: 10px;
+    width: 28px;
+  }
+
+  /* Hide volume on mobile */
   .player-volume {
     display: none;
   }
 
-  .progress-row {
-    max-width: 200px;
+  #player-position {
+    display: none !important;
   }
 
   .song-list-header,
@@ -1880,25 +1908,12 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 
-  #player-position {
-    display: none !important;
-  }
-
-  .play-btn-wrap {
-    width: 90px;
-  }
-
   .eq-presets {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .timer-options {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* Hide sidebar player on mobile */
-  .sidebar-player {
-    display: none;
   }
 }
 
@@ -1907,26 +1922,12 @@ body {
     font-size: 22px;
   }
 
-  .player-art {
-    width: 44px;
-    height: 44px;
+  .btn-icon {
+    padding: 6px;
   }
 
-  .play-btn {
-    width: 48px !important;
-    height: 48px !important;
-  }
-
-  .control-buttons {
-    gap: 0;
-  }
-
-  #btn-shuffle,
-  #btn-repeat {
-    display: none;
-  }
-
-  .play-btn-wrap {
-    width: 68px;
+  .btn-icon svg {
+    width: 18px;
+    height: 18px;
   }
 }

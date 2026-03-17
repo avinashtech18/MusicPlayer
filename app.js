@@ -1,7 +1,8 @@
-WAVVVE — Music Player
-  * Features: Song Position, True Shuffle, Search History, Visualizer,
- * Sleep Timer, Queue View, Equalizer, Mobile Mini Bar, Desktop Now Playing Bar
-  */
+/**
+ * WAVVVE — Music Player
+ * Features: Song Position, True Shuffle, Search History, Visualizer,
+ *           Sleep Timer, Queue View, Equalizer, Mobile Mini Bar, Desktop Now Playing Bar
+ */
 'use strict';
 
 /* ===========================
@@ -298,8 +299,8 @@ const MiniBar = (() => {
     if (mob) {
       mob.classList.toggle('visible', !!song);
       if (song) {
-        document.getElementById('mnp-title').textContent = song.title;
-        document.getElementById('mnp-artist').textContent = song.artist || '—';
+        document.getElementById('mnp-title')?.textContent = song.title;
+        document.getElementById('mnp-artist')?.textContent = song.artist || '—';
         const ip = mob.querySelector('.icon-play');
         const pp = mob.querySelector('.icon-pause');
         if (ip) ip.style.display = playing ? 'none' : 'block';
@@ -862,7 +863,23 @@ async function init() {
   // ── SLEEP TIMER ──
   document.getElementById('btn-sleep-timer').addEventListener('click', () => UI.openModal('modal-sleep-timer'));
   document.querySelectorAll('.timer-btn').forEach(btn => {
-    btn.addEventListener('click', () => { SleepTimer.set(parseInt(btn.dataset.mins)); UI.closeModal('modal-sleep-timer'); });
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      SleepTimer.set(parseInt(btn.dataset.mins));
+      UI.closeModal('modal-sleep-timer');
+    });
+  });
+  // Custom timer
+  document.getElementById('timer-custom-set').addEventListener('click', () => {
+    const val = parseInt(document.getElementById('timer-custom-input').value);
+    if (!val || val < 1 || val > 480) { showToast('⚠️ Enter a time between 1 and 480 minutes'); return; }
+    document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+    SleepTimer.set(val);
+    UI.closeModal('modal-sleep-timer');
+  });
+  document.getElementById('timer-custom-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('timer-custom-set').click();
   });
   document.getElementById('btn-cancel-timer')?.addEventListener('click', () => { SleepTimer.clear(); showToast('⏱ Sleep timer cancelled'); });
 
@@ -880,19 +897,20 @@ async function init() {
   });
 
   // ── MOBILE MINI BAR ──
-  document.getElementById('mnp-play').addEventListener('click', Player.togglePlay);
-  document.getElementById('mnp-next').addEventListener('click', Player.playNext);
-  document.getElementById('mnp-prev').addEventListener('click', Player.playPrev);
+  document.getElementById('mnp-play')?.addEventListener('click', Player.togglePlay);
+  document.getElementById('mnp-next')?.addEventListener('click', Player.playNext);
+  document.getElementById('mnp-prev')?.addEventListener('click', Player.playPrev);
 
   // ── SIDEBAR MINI PLAYER ──
-  document.getElementById('sp-play').addEventListener('click', Player.togglePlay);
-  document.getElementById('sp-next').addEventListener('click', Player.playNext);
-  document.getElementById('sp-prev').addEventListener('click', Player.playPrev);
-  document.getElementById('sp-shuffle').addEventListener('click', Player.toggleShuffle);
-  document.getElementById('sp-repeat').addEventListener('click', Player.toggleRepeat);
+  document.getElementById('sp-play')?.addEventListener('click', Player.togglePlay);
+  document.getElementById('sp-next')?.addEventListener('click', Player.playNext);
+  document.getElementById('sp-prev')?.addEventListener('click', Player.playPrev);
+  document.getElementById('sp-shuffle')?.addEventListener('click', Player.toggleShuffle);
+  document.getElementById('sp-repeat')?.addEventListener('click', Player.toggleRepeat);
 
   // Sidebar progress slider
-  makeSlider(document.getElementById('sp-progress'), pct => {
+  const spProg = document.getElementById('sp-progress');
+  if (spProg) makeSlider(spProg, pct => {
     AudioEngine.seek(pct);
     UI.updateProgress(AudioEngine.currentTime, AudioEngine.duration);
   });
