@@ -852,21 +852,48 @@ async function init() {
     .forEach(ul => ul.addEventListener('click', handleSongListClick));
 
   // ── SEARCH ──
+  function levenshtein(a, b) {
+    const dp = Array.from({ length: a.length + 1 }, () =>
+      Array(b.length + 1).fill(0)
+    );
+
+    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+        else {
+          dp[i][j] = 1 + Math.min(
+            dp[i - 1][j],     // delete
+            dp[i][j - 1],     // insert
+            dp[i - 1][j - 1]  // replace
+          );
+        }
+      }
+      if (!text.includes(q[0])) return null;
+    }
+    return dp[a.length][b.length];
+  }
+
+
+
+
+
+
+
+
   const results = State.songs
     .map((song, i) => {
       const text = (song.title + " " + (song.artist || "")).toLowerCase();
-      const words = query.toLowerCase().split(" ");
+      const q = query.toLowerCase();
 
-      let score = 0;
+      const distance = levenshtein(q, text);
 
-      words.forEach(word => {
-        if (text.includes(word)) score++;
-      });
-
-      return { song, idx: i, score };
+      return { song, idx: i, score: distance };
     })
-    .filter(r => r.score > 0)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 20); // limit results
 
   // ── PLAYER CONTROLS ──
   UI.el.btnPlay?.addEventListener('click', Player.togglePlay);
