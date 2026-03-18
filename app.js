@@ -852,14 +852,21 @@ async function init() {
     .forEach(ul => ul.addEventListener('click', handleSongListClick));
 
   // ── SEARCH ──
-  UI.el.searchInput?.addEventListener('focus', () => { if (!UI.el.searchInput.value.trim()) UI.renderSearchHistory(); });
-  UI.el.searchInput?.addEventListener('input', e => { Search.debounce(e.target.value); if (!e.target.value.trim()) UI.renderSearchHistory(); });
-  UI.el.searchInput?.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { UI.el.searchInput.value = ''; Search.run(''); UI.el.searchHistory?.classList.remove('visible'); }
-    if (e.key === 'Enter' && UI.el.searchInput.value.trim()) { State.addSearchHistory(UI.el.searchInput.value.trim()); UI.el.searchHistory?.classList.remove('visible'); }
-  });
-  UI.el.searchClear?.addEventListener('click', () => { if (UI.el.searchInput) UI.el.searchInput.value = ''; Search.run(''); UI.el.searchInput?.focus(); UI.renderSearchHistory(); });
-  document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) UI.el.searchHistory?.classList.remove('visible'); });
+  const results = State.songs
+    .map((song, i) => {
+      const text = (song.title + " " + (song.artist || "")).toLowerCase();
+      const words = query.toLowerCase().split(" ");
+
+      let score = 0;
+
+      words.forEach(word => {
+        if (text.includes(word)) score++;
+      });
+
+      return { song, idx: i, score };
+    })
+    .filter(r => r.score > 0)
+    .sort((a, b) => b.score - a.score);
 
   // ── PLAYER CONTROLS ──
   UI.el.btnPlay?.addEventListener('click', Player.togglePlay);
